@@ -1,0 +1,82 @@
+<section>
+  <div class="selection">
+    <h2 class="mb-2">Please select one of the Available Sensors or Available Devices</h2>
+    <form class="p-fluid"
+          [formGroup]="form" (ngSubmit)="submitForm()"
+          lossMonitor [lossRouteFilter]="activatedRoute">
+      <div class="grid">
+        <div class="field col-12 md:col-6">
+          <label>
+            Sensor
+            <app-required-field-indicator></app-required-field-indicator>
+          </label>
+
+          <p-multiSelect [inputId]="'sensor'" formControlName="sensor"
+                         [options]="(availableSensorsOptions$ | async) ?? []"
+                         optionValue="entry" optionLabel="label"
+                         display="chip"
+                         [showClear]="true"
+                         [filter]="true"
+                         placeholder="Select Sensor"
+          ></p-multiSelect>
+          <app-form-control-errors controlName="sensor"></app-form-control-errors>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label>
+            Device
+            <app-required-field-indicator></app-required-field-indicator>
+          </label>
+
+          <p-multiSelect [inputId]="'device'" formControlName="device"
+                         [options]="(availableDevicesOptions$ | async) ?? []"
+                         optionValue="entry" optionLabel="label"
+                         display="chip"
+                         [showClear]="true"
+                         [filter]="true"
+                         placeholder="Select Device"
+          ></p-multiSelect>
+          <app-form-control-errors controlName="device"></app-form-control-errors>
+        </div>
+      </div>
+      <div>
+        <button type="submit" [disabled]="!form.valid"
+                pButton class="p-button-success not-fluid">
+          Select
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+@if (showChart) {
+  <section>
+    <div class="selection">
+      <h2 class="mb-2">Please select which series you want to see</h2>
+      <form [formGroup]="selectSeriesForm" class="p-fluid">
+        <div class="field">
+          <p-multiSelect
+            [options]="selectSeriesOptions$"
+            formControlName="series"
+            optionLabel="label"
+            placeholder="Select Series"
+            display="chip"
+            [showClear]="true"
+          >
+          </p-multiSelect>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="my-8">
+    <!--    @if (availableSensorsFormResult) {-->
+    <!--      <div class="mb-5">-->
+    <!--        <app-sensor-chart-legend></app-sensor-chart-legend>-->
+    <!--      </div>-->
+    <!--    }-->
+    <p-card
+      [header]='(availableSensorsFormResult && availableDevicesFormResult )? ( availableDevicesFormResult.name + " -- " + availableSensorsFormResult.name): "All Sensors"'>
+      <app-line-chart [jsonData]="transformedData"></app-line-chart>
+    </p-card>
+  </section>
+}
