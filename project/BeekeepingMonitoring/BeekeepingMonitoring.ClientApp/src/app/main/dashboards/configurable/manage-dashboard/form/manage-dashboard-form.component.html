@@ -1,0 +1,17 @@
+<ng-container appIdNamespace="dashboard-manage-">
+  <form class="p-fluid"
+        [formGroup]="form" (ngSubmit)="onSubmit.emit()"
+        lossMonitor [lossRouteFilter]="activatedRoute">
+    <div class="field">
+      <label namespacedFor="name">
+        Name
+        <app-required-field-indicator></app-required-field-indicator>
+      </label>
+      <input namespacedId="name" formControlName="name"
+             pInputText type="text">
+      <app-form-control-errors controlName="name"></app-form-control-errors>
+    </div>
+
+    <ng-content select=".end-of-form"></ng-content>
+  </form>
+</ng-container>

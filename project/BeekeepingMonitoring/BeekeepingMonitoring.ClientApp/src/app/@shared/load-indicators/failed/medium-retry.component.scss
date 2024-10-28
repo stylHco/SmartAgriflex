@@ -1,0 +1,27 @@
+﻿@import "../../comp-styles/center-vert-items";
+
+.content {
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  i {
+    font-size: 8rem;
+  }
+
+  i.retry {
+    display: none;
+  }
+
+  &:hover {
+    i.error {
+      display: none;
+    }
+
+    i.retry {
+      display: block;
+    }
+  }
+}

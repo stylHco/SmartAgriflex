@@ -1,0 +1,44 @@
+<!-- [matchMode] here only sets the initial value -->
+<p-columnFilter
+  *ngIf="fieldPath"
+  [field]="fieldPath"
+  [matchMode]="$any(getMatchModeKey(matchModeSelection))"
+  display="menu"
+  [showMatchModes]="false"
+  [showOperator]="false"
+  [showAddButton]="false"
+  dtRefreshOnTableReset>
+  <ng-template
+    appReferenceFilterContext
+    pTemplate="filter"
+    let-filterValue
+    let-filter="filterConstraint">
+    <p-dropdown
+      class="block mb-2"
+      [options]="modeOptions"
+      [(ngModel)]="matchModeSelection"
+      (onChange)="filter.matchMode = getMatchModeKey($event.value)"
+      optionValue="value"
+      optionLabel="label"/>
+    <p-listbox
+      [options]="(options$ | async) ?? []"
+      [ngModel]="getMultiSelectValueFromFilter(filterValue)"
+      (onChange)="filter.value = getFilterValueFromMultiSelect($event.value)"
+      [listStyle]="{ 'max-height': '250px' }"
+      [filter]="true"
+      [multiple]="true"
+      [checkbox]="true"
+      optionLabel="label"
+      optionValue="id">
+      <ng-template pTemplate="itemTemplate" let-option>
+        <ng-container *ngIf="option.id; else: emptyOption">
+          {{ option.label }}
+        </ng-container>
+      </ng-template>
+    </p-listbox>
+  </ng-template>
+</p-columnFilter>
+
+<ng-template #emptyOption>
+  <app-empty-replacement/>
+</ng-template>

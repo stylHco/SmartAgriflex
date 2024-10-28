@@ -1,0 +1,103 @@
+<ng-container *transloco="let t" appIdNamespace="devices-manage-">
+  <p-panel
+    #managePanel
+    [header]="manageMode == 'Edit' ? t('devices.manage.header.edit') : t('devices.manage.header.add')"
+  >
+    <ng-template pTemplate="icons">
+      <app-panel-header-actions [items]="panelMenu | dynamicMenu"/>
+    </ng-template>
+
+    <form class="p-fluid"
+          [formGroup]="form" (ngSubmit)="submitForm()"
+          lossMonitor [lossRouteFilter]="activeRoute">
+      <div class="field">
+        <label namespacedFor="name">
+          {{ t('devices.fields.name') }}
+          <app-required-field-indicator></app-required-field-indicator>
+        </label>
+        <input namespacedId="name" formControlName="name"
+               pInputText type="text">
+        <app-form-control-errors controlName="name"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="nickname">
+          {{ t('devices.fields.nickname') }}
+        </label>
+        <input namespacedId="nickname" formControlName="nickname"
+               pInputText type="text">
+        <app-form-control-errors controlName="nickname"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="description">
+          {{ t('devices.fields.description') }}
+        </label>
+        <input namespacedId="description" formControlName="description"
+               pInputText type="text">
+        <app-form-control-errors controlName="description"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="model">
+          {{ t('devices.fields.model') }}
+        </label>
+        <input namespacedId="model" formControlName="model"
+               pInputText type="text">
+        <app-form-control-errors controlName="model"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="latitude">
+          {{ t('devices.fields.latitude') }}
+        </label>
+        <p-inputNumber [inputId]="'latitude' | namespaceId" formControlName="latitude"
+                       [showClear]="true" [minFractionDigits]="2"
+                       [min]="-999999999999.999" [max]="999999999999.999">
+        </p-inputNumber>
+        <app-form-control-errors controlName="latitude"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="longitude">
+          {{ t('devices.fields.longitude') }}
+        </label>
+        <p-inputNumber [inputId]="'longitude' | namespaceId" formControlName="longitude"
+                       [showClear]="true" [minFractionDigits]="2"
+                       [min]="-999999999999.999" [max]="999999999999.999">
+        </p-inputNumber>
+        <app-form-control-errors controlName="longitude"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="installedDate">
+          {{ t('devices.fields.installedDate') }}
+        </label>
+        <p-calendar [inputId]="'installedDate' | namespaceId" formControlName="installedDate"
+                    [showClear]="true" [showTime]="true" [showSeconds]="true">
+        </p-calendar>
+        <app-form-control-errors controlName="installedDate"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="uid">
+          {{ t('devices.fields.uid') }}
+        </label>
+        <input namespacedId="uid" formControlName="uid"
+               pInputText type="text">
+        <app-form-control-errors controlName="uid"></app-form-control-errors>
+      </div>
+
+      <div>
+        <button type="submit" [disabled]="!form.valid"
+                pButton class="p-button-success not-fluid"
+                [label]="manageMode == 'Edit' ? t('buttons.saveChanges') : t('buttons.saveCreate')">
+        </button>
+      </div>
+    </form>
+  </p-panel>
+
+  <p-blockUI [blocked]="formDisabler.monitor.isSubscribed" [target]="managePanel">
+    <p-progressSpinner></p-progressSpinner>
+  </p-blockUI>
+</ng-container>

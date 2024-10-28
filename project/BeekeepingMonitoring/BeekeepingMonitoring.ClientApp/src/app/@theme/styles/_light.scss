@@ -1,0 +1,22 @@
+﻿//@import "primeng/resources/themes/lara-light-blue/theme.css";
+
+@use "../prime/lara-light-blue";
+@use "mixins";
+
+@mixin theme {
+  @include lara-light-blue.root-vars;
+  @include lara-light-blue.styles;
+
+  p-panel.full-content-border .p-panel-content {
+    border: 1px solid #0b213f;
+  }
+
+  p-panel.no-content .p-panel-header {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+}
+
+@include mixins.when-light-theme {
+  @include theme
+}

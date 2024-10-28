@@ -1,0 +1,26 @@
+{
+  "fields": {
+    "id": "ID",
+    "name": "Name",
+    "nickname": "Nickname",
+    "description": "Description",
+    "model": "Model",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "installedDate": "Installed date",
+    "uid": "Uid"
+  },
+  "list": {
+    "header": "Devices"
+  },
+  "manage": {
+    "header": {
+      "edit": "Edit device",
+      "add": "Add device"
+    }
+  },
+  "view": {
+    "title_suffix": "Device",
+    "header": "Device details"
+  }
+}

@@ -1,0 +1,52 @@
+<!-- TODO: loc + better/common style classes -->
+
+<ng-container *transloco="let t" appIdNamespace="auth-register-">
+  <div class="w-full md:w-10 mx-auto">
+    <div class="mb-5 text-center">
+      <div class="text-900 text-3xl font-medium">Register</div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submitForm()"
+          lossMonitor [lossRouteFilter]="activatedRoute">
+      <div class="mb-3">
+        <label namespacedFor="email" class="block text-900 text-xl font-medium mb-2">Email</label>
+        <input namespacedId="email" formControlName="email"
+               pInputText type="text" placeholder="Email address"
+               class="w-full p-3">
+        <app-form-control-errors controlName="email"></app-form-control-errors>
+      </div>
+
+      <div class="mb-3">
+        <label namespacedFor="password" class="block text-900 font-medium text-xl mb-2">Password</label>
+        <p-password [inputId]="'password' | namespaceId" formControlName="password"
+                    placeholder="Password" [toggleMask]="true"
+                    styleClass="w-full"
+                    inputStyleClass="p-3 w-full">
+        </p-password>
+        <app-form-control-errors controlName="password"></app-form-control-errors>
+      </div>
+
+      <div class="mb-3">
+        <label namespacedFor="confirm-password" class="block text-900 font-medium text-xl mb-2">
+          Confirm password
+        </label>
+        <p-password [inputId]="'confirmPassword' | namespaceId" formControlName="confirmPassword"
+                    placeholder="Confirm password" [toggleMask]="true" [feedback]="false"
+                    styleClass="w-full"
+                    inputStyleClass="p-3 w-full">
+        </p-password>
+        <app-form-control-errors controlName="confirmPassword"></app-form-control-errors>
+      </div>
+
+      <button pButton type="submit"
+              [disabled]="form.invalid"
+              label="Register"
+              class="w-full p-3 text-xl mt-3">
+      </button>
+    </form>
+
+    <p class="text-center">
+      Back to <a routerLink="../login">{{ t('auth.login.header') }}</a>
+    </p>
+  </div>
+</ng-container>

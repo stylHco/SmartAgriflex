@@ -1,0 +1,10 @@
+.outer-box {
+  border-radius: 56px;
+  padding: 0.3rem;
+  background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%);
+}
+
+.inner-box {
+  border-radius: 53px;
+  background: linear-gradient(180deg, var(--surface-50) 38.9%, var(--surface-0));
+}

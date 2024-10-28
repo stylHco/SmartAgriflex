@@ -1,0 +1,22 @@
+﻿//@import "primeng/resources/themes/vela-blue/theme.css";
+
+@use "../prime/vela-blue.scss";
+@use "mixins";
+
+@mixin theme {
+  @include vela-blue.root-vars;
+  @include vela-blue.styles;
+
+  p-panel.full-content-border .p-panel-content {
+    border: 1px solid #304562;
+  }
+
+  p-panel.no-content .p-panel-header {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
+}
+
+@include mixins.when-dark-theme {
+  @include theme
+}

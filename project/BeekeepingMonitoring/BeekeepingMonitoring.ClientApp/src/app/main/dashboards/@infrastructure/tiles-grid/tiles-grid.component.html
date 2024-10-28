@@ -1,0 +1,51 @@
+<p-messages
+  *ngIf="isManageModeSelected && !viewportLargeEnough"
+  severity="error">
+  <ng-template pTemplate="">
+    <!-- TODO: loc -->
+    Manage mode is disabled due to small screen/window size
+  </ng-template>
+</p-messages>
+
+<ktd-grid
+  #grid
+  [cols]="viewportLargeEnough ? 6 : 1"
+  [rowHeight]="viewportLargeEnough ? 100 : 300"
+  [layout]="activeLayout"
+  [gap]="10"
+  (onResize)="grid.resize()"
+  (layoutUpdated)="onLayoutUpdated($event)">
+
+  <ktd-grid-item
+    *ngFor="let pair of _contentMap | keyvalue; trackBy:trackKvp"
+    [id]="pair.key"
+    [draggable]="isManageModeActive"
+    [resizable]="isManageModeActive">
+    <div class="tile">
+      <p-panel
+        class="manage-bar no-content">
+        <p-header ktdGridDragHandle>
+          <div class="p-panel-title">
+            <ng-container
+              [appDynamicComponentOutlet]="pair.value.presentSpec.manageHeaderDescription"
+              [optionalInputs]="getManageHeaderDescriptionInputs(pair.value)"/>
+          </div>
+        </p-header>
+
+        <ng-template pTemplate="icons">
+          <button
+            *ngFor="let action of pair.value.presentSpec.actions"
+            pButton class="p-panel-header-icon p-link"
+            [title]="action.title | async"
+            (click)="action.callback()">
+            <span [class]="action.icon"></span>
+          </button>
+        </ng-template>
+      </p-panel>
+
+      <app-dash-tile-content
+        [componentSource]="pair.value.presentSpec.component"
+        [dataSource]="(pair.value.presentSpec.data.value$ | async)!"/>
+    </div>
+  </ktd-grid-item>
+</ktd-grid>

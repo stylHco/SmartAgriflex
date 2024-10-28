@@ -1,0 +1,37 @@
+<ng-container *transloco="let t">
+  <p-panel class="no-content-padding" [header]="t('sensorDevices.view.header')">
+    <ng-template pTemplate="icons">
+      <app-panel-header-actions [items]="panelMenu | dynamicMenu"/>
+    </ng-template>
+
+    <app-details-list-entry [label]="t('sensorDevices.fields.id')">
+      {{ item.id | number: '1.0-99' }}
+    </app-details-list-entry>
+
+    <app-details-list-entry [label]="t('sensorDevices.fields.sensor')">
+      <a [routerLink]="['../../../sensors/view', item.sensor.id]">
+        <app-sensor-representing [sensor]="item.sensor" />
+      </a>
+    </app-details-list-entry>
+
+    <app-details-list-entry [label]="t('sensorDevices.fields.device')">
+      <a [routerLink]="['../../../devices/view', item.device.id]">
+        <app-device-representing [device]="item.device" />
+      </a>
+    </app-details-list-entry>
+
+    <app-details-list-entry [label]="t('sensorDevices.fields.comments')">
+      <ng-container *appNullReplacer="item.comments">
+        <ng-container *appEmptyReplacer="item.comments">
+          {{ item.comments }}
+        </ng-container>
+      </ng-container>
+    </app-details-list-entry>
+  </p-panel>
+
+  <app-deletion-confirm-dialog
+      [(isOpen)]="isDeleteDialogOpen"
+      [itemDeletedName]="representingService.getLabel(item).value"
+      (accepted)="delete()" [inProgress]="deleteMonitor.isSubscribed"
+    />
+</ng-container>

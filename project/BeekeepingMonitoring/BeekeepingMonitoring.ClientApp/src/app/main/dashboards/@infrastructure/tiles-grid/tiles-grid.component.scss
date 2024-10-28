@@ -1,0 +1,42 @@
+p-panel.manage-bar {
+  margin-bottom: 3px;
+
+  display: block;
+
+  :host(:not(.manage-mode)) & {
+    display: none;
+  }
+
+  ::ng-deep .p-panel-header {
+    padding: 0!important;
+    display: flex;
+  }
+
+  p-header {
+    padding: 7px !important;
+    flex-grow: 1;
+
+    cursor: move;
+    user-select: none;
+
+    .p-panel-title {
+      font-weight: normal;
+    }
+  }
+}
+
+.tile {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+app-dash-tile-content {
+  flex-grow: 1;
+
+  // Required otherwise long tables do not actually shrink
+  // ("clamped to min" although I have no idea where that min comes from).
+  min-height: 0;
+}
+

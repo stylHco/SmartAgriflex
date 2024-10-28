@@ -1,0 +1,72 @@
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {MainSegmentComponent} from "./main-segment.component";
+import {MustLoginGuard} from "../@core/auth/must-login.guard";
+
+const routes: Routes = [{
+  path: '',
+  component: MainSegmentComponent,
+  canActivateChild: [
+    MustLoginGuard,
+  ],
+  children: [
+    {
+      path: '',
+      redirectTo: 'dashboards/configurable',
+      pathMatch: 'full',
+    },
+    {
+      path: 'dashboards',
+      children: [
+        {
+          path: 'configurable',
+          loadChildren: () => import('./dashboards/configurable/configurable-dashboard.entrypoint')
+            .then(i => i.routes),
+        },
+        {
+          path: 'predefined',
+          children: [
+            {
+              path: 'market-basket',
+              loadChildren: () => import('./dashboards/predefined/market-basket/market-basket.entrypoint')
+                .then(i => i.routes),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      path: 'account',
+      loadChildren: () => import('./account/account.module')
+        .then(m => m.AccountModule),
+    },
+    {
+      path: 'devices',
+      loadChildren: () => import('./devices/devices.entrypoint')
+        .then(m => m.routes),
+    },
+    {
+      path: 'sensors',
+      loadChildren: () => import('./sensors/sensors.entrypoint')
+        .then(m => m.routes),
+    },
+    {
+      path: 'sensor-devices',
+      loadChildren: () => import('./sensor-devices/sensor-devices.entrypoint')
+        .then(m => m.routes),
+    },
+    {
+      path: 'sensor-device-datas',
+      loadChildren: () => import('./sensor-device-datas/sensor-device-datas.entrypoint')
+        .then(m => m.routes),
+    },
+    // Add routes for your features here
+  ],
+}];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class MainSegmentRoutingModule {
+}

@@ -1,0 +1,19 @@
+<a
+  *ngIf="item.routerLink; else button"
+  pButton
+  class="p-panel-header-icon"
+  [icon]="item.icon!"
+  [title]="item.title"
+  [routerLink]="item.routerLink"
+  (click)="onClick($event)"
+></a>
+
+<ng-template #button>
+  <button
+    pButton
+    class="p-panel-header-icon"
+    [icon]="item.icon!"
+    [title]="item.title"
+    (click)="onClick($event)"
+  ></button>
+</ng-template>

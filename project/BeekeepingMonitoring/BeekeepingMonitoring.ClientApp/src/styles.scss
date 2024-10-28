@@ -1,0 +1,15 @@
+/* Prime */
+@import "primeng/resources/primeng.min.css";
+@import "primeflex/primeflex.scss";
+@import "primeicons/primeicons.css";
+
+/* Template/custom */
+@import "src/app/@theme/styles/dark";
+@import "src/app/@theme/styles/light";
+@import "src/app/@theme/styles/main";
+
+/* Theme */
+//@import "primeng/resources/themes/vela-blue/theme.css";
+
+/* App shared */
+@import "src/app/@shared/details-list/global";

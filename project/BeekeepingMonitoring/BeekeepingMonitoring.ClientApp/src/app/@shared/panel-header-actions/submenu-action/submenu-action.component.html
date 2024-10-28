@@ -1,0 +1,9 @@
+<button
+  pButton
+  class="p-panel-header-icon"
+  [icon]="item.icon!"
+  [title]="item.title"
+  (click)="childrenMenu.toggle($event)"
+></button>
+
+<p-tieredMenu #childrenMenu [model]="children ?? item.items ?? []" [popup]="true" />
