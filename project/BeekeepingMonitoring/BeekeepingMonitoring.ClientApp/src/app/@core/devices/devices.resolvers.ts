@@ -15,3 +15,8 @@ export const resolveDeviceForUpdate = wrapResolverApiResult(
   route => inject(DevicesClient)
     .getForUpdate(+route.paramMap.get('id')!)
 );
+
+export const resolveDeviceInfo= wrapResolverApiResult(
+  route => inject(DevicesClient)
+    .get(+route.paramMap.get('id')!)
+);

@@ -1,10 +1,10 @@
 ﻿import {Routes} from "@angular/router";
 import {TRANSLOCO_SCOPE, TranslocoScope} from "@ngneat/transloco";
 import {createTranslocoLoader} from "../../@transloco/transloco.helpers";
-import {resolveSensorsData} from "../../@core/sensors-data/sensors-data.resolver";
-import {resolveSensorsDropdown, resolveSensorsList} from "../../@core/sensors/sensors.resolver";
 import {ViewHistoryChartsComponent} from "./view-history-charts/view-history-charts.component";
-import {resolveDevicesDropdown} from "../../@core/devices/devices.resolver";
+import {resolveSensorsDropdown, resolveSensorsList} from "../../@core/sensors/sensors.resolvers";
+import {resolveDevicesDropdown} from "../../@core/devices/devices.resolvers";
+import {resolveSensorDeviceDatasList} from "../../@core/sensor-device-datas/sensor-device-datas.resolvers";
 
 const translocoLoader = createTranslocoLoader(
   // @ts-ignore
@@ -29,7 +29,7 @@ export const routes: Routes = [{
       path: 'view-history-charts',
       component: ViewHistoryChartsComponent,
       resolve: {
-        allSensorData: resolveSensorsData,
+        allSensorData: resolveSensorDeviceDatasList,
         availableSensors: resolveSensorsDropdown,
         availableDevices: resolveDevicesDropdown,
         sensorInfo: resolveSensorsList

@@ -1,10 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
 import {ActivatedRoute, Params, Router, RouterModule} from "@angular/router";
 import {
-  DeviceReferenceModel, SensorDateStatistics,
-  SensorReferenceModel, SensorsDataClient, SensorsDataDetailsModel,
-  SensorsDataFullDetailsModel,
-  SensorsDataListModel,
+  DeviceReferenceModel, SensorDateStatistics, SensorDeviceDatasClient, SensorDeviceDatasListModel,
+  SensorReferenceModel,
   SensorsListModel
 } from "../../../@core/app-api";
 import {ApiResult} from "../../../@shared/utils/api-result";
@@ -78,7 +76,7 @@ export class ViewHistoryChartsComponent implements OnInit {
   availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
 
 
-  sensorsFullData: SensorsDataListModel[] = [];
+  sensorsFullData: SensorDeviceDatasListModel[] = [];
 
   specificSensorData!: { [p: string]: SensorDateStatistics[] };
   transformedData!: TransformedData[];
@@ -101,7 +99,7 @@ export class ViewHistoryChartsComponent implements OnInit {
     private cd: ChangeDetectorRef,
     private sensorRepresentingService: SensorRepresentingService,
     private deviceRepresentingService: DeviceRepresentingService,
-    private sensorDataClient: SensorsDataClient
+    private sensorDeviceDatasClient: SensorDeviceDatasClient
   ) {
   }
 
@@ -136,7 +134,7 @@ export class ViewHistoryChartsComponent implements OnInit {
         this.deviceId = params['deviceIds'];
 
 
-        this.sensorDataClient.getSensor(this.sensorId, this.deviceId)
+        this.sensorDeviceDatasClient.getSensor(this.sensorId!, this.deviceId!)
           .pipe(
             autoMarkForCheck(this.cd),
           )
@@ -231,7 +229,7 @@ export class ViewHistoryChartsComponent implements OnInit {
 
       // Proceed with the transformed data
       if (this.sensorId !== null && this.deviceId !== null) {
-        this.sensorDataClient.getSensor(this.sensorId, this.deviceId)
+        this.sensorDeviceDatasClient.getSensor(this.sensorId, this.deviceId)
           .pipe(autoMarkForCheck(this.cd))
           .subscribe(data => {
             this.specificSensorData = data;
@@ -242,7 +240,7 @@ export class ViewHistoryChartsComponent implements OnInit {
       // Handle cases where the values are directly of type `EChartAvailableData`
       console.log('Selected values:', selectedSeries);
       if (this.sensorId !== null && this.deviceId !== null) {
-        this.sensorDataClient.getSensor(this.sensorId, this.deviceId)
+        this.sensorDeviceDatasClient.getSensor(this.sensorId, this.deviceId)
           .pipe(autoMarkForCheck(this.cd))
           .subscribe(data => {
             this.specificSensorData = data;

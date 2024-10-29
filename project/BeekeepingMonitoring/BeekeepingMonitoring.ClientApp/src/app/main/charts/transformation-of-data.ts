@@ -1,9 +1,8 @@
 import {
   SensorDateStatistics,
-  SensorsDataDetailsModel,
   SensorsDataFullDetailsModel,
-  SensorsDataListModel,
-  SensorsDataStatistics
+  SensorDeviceDatasListModel,
+  SensorsDataStatistics, SensorDeviceDataDetailsModel
 } from "../../@core/app-api";
 
 export enum EChartAvailableData {
@@ -20,7 +19,7 @@ export interface TransformedData {
   data: { date: Date; value: number }[];
 }
 
-export function transformData(inputData: SensorsDataDetailsModel[]): TransformedData[] {
+export function transformData(inputData: SensorDeviceDataDetailsModel[]): TransformedData[] {
   const sensorDataMap: {
     [sensorId: number]: { deviceName: string; sensorName: string; data: { date: Date; value: number }[] }
   } = {};
@@ -28,13 +27,13 @@ export function transformData(inputData: SensorsDataDetailsModel[]): Transformed
   inputData.forEach(record => {
     const deviceName = record.sensorDevice.device.name;
     const sensorName = record.sensorDevice.sensor.name;
-    const date = new Date(record.recordDate);
+    const date = new Date(record.recordDate.toString());
 
     if (!sensorDataMap[record.sensorDevice.id]) {
       sensorDataMap[record.sensorDevice.id] = {deviceName, sensorName, data: []};
     }
 
-    sensorDataMap[record.sensorDevice.id].data.push({date, value: record.value});
+    sensorDataMap[record.sensorDevice.id].data.push({date, value: record.value!});
   });
 
   return Object.values(sensorDataMap);
@@ -53,7 +52,7 @@ export function transformDataForSpecificSensors(inputData: { [sensorId: string]:
     const sumValuesData: { date: Date; value: number }[] = [];
 
     sensorRecords.forEach(record => {
-      const date = new Date(record.recordedDate);
+      const date = new Date(record.recordedDate.toString());
 
       if (selectedSeries.includes(EChartAvailableData.value)) {
         valuesData.push({ date, value: record.avg }); // Assuming "value" corresponds to "avg" in the input data
@@ -107,8 +106,8 @@ export function transformData2(inputData: SensorsDataFullDetailsModel[]): Transf
   const valuesData: { date: Date; value: number }[] = [];
 
   inputData.forEach(record => {
-    const date = new Date(record.recordDate);
-    valuesData.push({date, value: record.value});
+    const date = new Date(record.recordDate.toString());
+    valuesData.push({date, value: record.value!});
   });
 
   const result: TransformedData[] = [];

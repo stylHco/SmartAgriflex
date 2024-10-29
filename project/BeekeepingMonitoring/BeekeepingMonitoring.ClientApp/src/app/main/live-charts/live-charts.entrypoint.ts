@@ -2,9 +2,9 @@
 import {TRANSLOCO_SCOPE, TranslocoScope} from "@ngneat/transloco";
 import {createTranslocoLoader} from "../../@transloco/transloco.helpers";
 import {ViewLiveChartsComponent} from "./view-live-charts/view-live-charts.component";
-import {resolveSensorsData} from "../../@core/sensors-data/sensors-data.resolver";
-import {resolveSensorsDropdown, resolveSensorsList} from "../../@core/sensors/sensors.resolver";
-import {resolveDevicesDropdown} from "../../@core/devices/devices.resolver";
+import {resolveSensorDeviceDatasList} from "../../@core/sensor-device-datas/sensor-device-datas.resolvers";
+import {resolveDevicesDropdown} from "../../@core/devices/devices.resolvers";
+import {resolveSensorsDropdown, resolveSensorsList} from "../../@core/sensors/sensors.resolvers";
 
 const translocoLoader = createTranslocoLoader(
   // @ts-ignore
@@ -29,7 +29,7 @@ export const routes: Routes = [{
       path: 'view-live-carts',
       component: ViewLiveChartsComponent,
       resolve: {
-        allSensorData: resolveSensorsData,
+        allSensorData: resolveSensorDeviceDatasList,
         availableDevices: resolveDevicesDropdown,
         availableSensors: resolveSensorsDropdown,
         sensorInfo: resolveSensorsList
@@ -39,7 +39,7 @@ export const routes: Routes = [{
       path: 'view-live-carts/:id',
       component: ViewLiveChartsComponent,
       resolve: {
-        allSensorData: resolveSensorsData,
+        allSensorData: resolveSensorDeviceDatasList,
         availableDevices: resolveDevicesDropdown,
         availableSensors: resolveSensorsDropdown,
         sensorInfo: resolveSensorsList
