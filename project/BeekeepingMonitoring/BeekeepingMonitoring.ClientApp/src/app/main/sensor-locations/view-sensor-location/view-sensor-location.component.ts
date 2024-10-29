@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
 import {ActivatedRoute, Params, Router, RouterModule} from "@angular/router";
 import {
-  DeviceReferenceModel, DevicesClient, DevicessListModel
+  DeviceReferenceModel, DevicesClient, DevicesListModel
 } from "../../../@core/app-api";
 import {ApiResult} from "../../../@shared/utils/api-result";
 import {CommonModule} from "@angular/common";
@@ -57,7 +57,7 @@ export class ViewSensorLocationComponent implements OnInit {
   availableDevices:  DeviceReferenceModel[] = [];
   availableDevicesOptions$!: Observable<DeviceOption< DeviceReferenceModel>[]>;
 
-  deviceInfo!: DevicessListModel;
+  deviceInfo!: DevicesListModel;
 
 
   form!: FormGroup<DeviceSelectionForm>;

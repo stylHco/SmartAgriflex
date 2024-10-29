@@ -29,7 +29,7 @@ import {
   SensorDeviceCreateModel,
   SensorDeviceUpdateModel,
   SensorReferenceModel,
-  DeviceReferenceModel,
+  DeviceReferenceModel, Device,
 } from "../../../@core/app-api";
 import {SensorDeviceRepresentingService} from "../../../@core/sensor-devices/sensor-device-representing.utils";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
@@ -200,6 +200,8 @@ export class ManageSensorDeviceComponent implements OnInit {
           id => this.representingService
             .getLabel({
               id: id,
+              sensor: sensor!,
+              device: device!
             })
             .value,
           this.manageMode,
@@ -231,6 +233,8 @@ export class ManageSensorDeviceComponent implements OnInit {
           this.representingService
             .getLabel({
               id: this.itemId!,
+              sensor: sensor!,
+              device: device!
             })
             .value,
           this.manageMode,
@@ -244,10 +248,15 @@ export class ManageSensorDeviceComponent implements OnInit {
   }
 
   private updateEditItemTitle() {
+    const sensor = this.form.controls.sensor.value;
+    const device = this.form.controls.device.value;
+
     this.editItemTitleSubject.next(
       this.representingService
         .getLabel({
           id: this.itemId!,
+          sensor: sensor!,
+          device: device!
         })
         .value,
     );

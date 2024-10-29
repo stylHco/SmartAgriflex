@@ -2,8 +2,7 @@
 import {TRANSLOCO_SCOPE, TranslocoScope} from "@ngneat/transloco";
 import {createTranslocoLoader} from "../../@transloco/transloco.helpers";
 import {ViewSensorLocationComponent} from "./view-sensor-location/view-sensor-location.component";
-import {resolveDeviceInfo, resolveDevicesDropdown} from "../../@core/devices/devices.resolver";
-
+import {resolveDeviceInfo, resolveDevicesDropdown} from "../../@core/devices/devices.resolvers";
 const translocoLoader = createTranslocoLoader(
   // @ts-ignore
   () => import(/* webpackMode: "eager" */ './i18n-sensor-location/en.json'),

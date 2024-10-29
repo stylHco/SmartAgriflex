@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
 import {ActivatedRoute, Params, Router, RouterModule} from "@angular/router";
 import {
-  DeviceReferenceModel,
-  SensorReferenceModel, SensorsDataClient,
+  DeviceReferenceModel, SensorDeviceDatasClient, SensorDeviceDatasListModel,
+  SensorReferenceModel,
   SensorsDataFullDetailsModel,
-  SensorsDataListModel,
   SensorsListModel
 } from "../../../@core/app-api";
 import {ApiResult} from "../../../@shared/utils/api-result";
@@ -18,7 +17,6 @@ import {FormControl, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
 import {interval, Observable, Subscription, switchMap} from "rxjs";
 import {autoMarkForCheck} from "../../../@shared/utils/change-detection-helpers";
-import {SensorDataRepresentingService} from "../../../@core/sensors-data/sensor-data-representing.utils";
 import {CommonValidators} from "../../../@shared/utils/common-validators";
 import {FormLossPreventionModule} from "../../../@shared/form-loss-prevention/form-loss-prevention.module";
 import {RequiredFieldIndicatorModule} from "../../../@shared/required-field-indicator/required-field-indicator.module";
@@ -76,7 +74,7 @@ export class ViewLiveChartsComponent implements OnInit {
   availableDevices: DeviceReferenceModel[] = [];
   availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
 
-  sensorsFullData: SensorsDataListModel[] = [];
+  sensorsFullData: SensorDeviceDatasListModel[] = [];
 
   specificSensorData!: SensorsDataFullDetailsModel[];
   transformedData!: TransformedData[];
@@ -95,7 +93,7 @@ export class ViewLiveChartsComponent implements OnInit {
     private cd: ChangeDetectorRef,
     private sensorRepresentingService: SensorRepresentingService,
     private deviceRepresentingService: DeviceRepresentingService,
-    private sensorDataClient: SensorsDataClient
+    private sensorDeviceDatasClient: SensorDeviceDatasClient
   ) {
   }
 
@@ -110,7 +108,7 @@ export class ViewLiveChartsComponent implements OnInit {
     this.availableSensorsResults = this.availableSensors
     this.availableSensorsOptions$ = this.sensorRepresentingService.getOptions(this.availableSensorsResults);
     this.availableDevices = (routeData['availableDevices'] as ApiResult<DeviceReferenceModel[]>).value!;
-    this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'Select All', description: ''}));
+    this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'Select All', nickname: ''}));
     this.availableDevicesResults = this.availableDevices
     this.availableDevicesOptions$ = this.deviceRepresentingService.getOptions(this.availableDevicesResults);
 
@@ -196,7 +194,7 @@ export class ViewLiveChartsComponent implements OnInit {
 
 
       this.dataLoadable = new Loadable<TransformedData[]>(() =>
-        this.sensorDataClient.getForSensor(sensorId, deviceId).pipe(
+        this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!).pipe(
           switchMap(data => {
             this.specificSensorData = data;
             this.transformedData = transformData2(data);
@@ -227,7 +225,7 @@ export class ViewLiveChartsComponent implements OnInit {
 
     this.pollingSubscription = interval(1000).pipe(
       switchMap(() =>
-        this.sensorDataClient.getForSensor(sensorId, deviceId).pipe(
+        this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!).pipe(
           switchMap(data => {
             this.specificSensorData = data;
             this.dataIsLoaded = true;

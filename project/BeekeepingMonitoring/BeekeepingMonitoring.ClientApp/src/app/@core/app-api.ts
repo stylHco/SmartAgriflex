@@ -3428,6 +3428,7 @@ export interface ISensorsListModel {
 export class SensorReferenceModel implements ISensorReferenceModel {
     id!: number;
     name!: string;
+    description!: string | null;
 
     constructor(data?: ISensorReferenceModel) {
         if (data) {
@@ -3442,6 +3443,7 @@ export class SensorReferenceModel implements ISensorReferenceModel {
         if (_data) {
             this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
             this.name = _data["name"] !== undefined ? _data["name"] : <any>null;
+            this.description = _data["description"] !== undefined ? _data["description"] : <any>null;
         }
     }
 
@@ -3456,6 +3458,7 @@ export class SensorReferenceModel implements ISensorReferenceModel {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id !== undefined ? this.id : <any>null;
         data["name"] = this.name !== undefined ? this.name : <any>null;
+        data["description"] = this.description !== undefined ? this.description : <any>null;
         return data;
     }
 
@@ -3470,6 +3473,7 @@ export class SensorReferenceModel implements ISensorReferenceModel {
 export interface ISensorReferenceModel {
     id: number;
     name: string;
+    description: string | null;
 }
 
 export class SensorDetailsModel implements ISensorDetailsModel {
@@ -3733,6 +3737,8 @@ export interface IDeviceReferenceModel {
 
 export class SensorDeviceReferenceModel implements ISensorDeviceReferenceModel {
     id!: number;
+    sensor!: SensorReferenceModel;
+    device!: DeviceReferenceModel;
 
     constructor(data?: ISensorDeviceReferenceModel) {
         if (data) {
@@ -3741,11 +3747,17 @@ export class SensorDeviceReferenceModel implements ISensorDeviceReferenceModel {
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.sensor = new SensorReferenceModel();
+            this.device = new DeviceReferenceModel();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
+            this.device = _data["device"] ? DeviceReferenceModel.fromJS(_data["device"]) : new DeviceReferenceModel();
         }
     }
 
@@ -3759,6 +3771,8 @@ export class SensorDeviceReferenceModel implements ISensorDeviceReferenceModel {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["device"] = this.device ? this.device.toJSON() : <any>null;
         return data;
     }
 
@@ -3772,6 +3786,8 @@ export class SensorDeviceReferenceModel implements ISensorDeviceReferenceModel {
 
 export interface ISensorDeviceReferenceModel {
     id: number;
+    sensor: SensorReferenceModel;
+    device: DeviceReferenceModel;
 }
 
 export class SensorDeviceDetailsModel implements ISensorDeviceDetailsModel {
