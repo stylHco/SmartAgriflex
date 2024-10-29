@@ -33,7 +33,7 @@ public class SensorDeviceData
 
     public required decimal? Value { get; set; }
 
-    public required LocalDate RecordDate { get; set; }
+    public required LocalDateTime RecordDate { get; set; }
 }
 
 public class SensorDeviceDataEntityConfiguration : IEntityTypeConfiguration<SensorDeviceData>

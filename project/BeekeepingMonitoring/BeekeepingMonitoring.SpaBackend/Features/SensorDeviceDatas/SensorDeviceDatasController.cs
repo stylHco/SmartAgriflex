@@ -34,7 +34,7 @@ public partial class SensorDeviceDatasController : ControllerBase
 
         public required decimal? Value { get; set; }
 
-        public required LocalDate RecordDate { get; set; }
+        public required LocalDateTime RecordDate { get; set; }
     }
 
     [HttpPost]
@@ -85,7 +85,7 @@ public partial class SensorDeviceDatasController : ControllerBase
 
         public required decimal? Value { get; set; }
 
-        public required LocalDate RecordDate { get; set; }
+        public required LocalDateTime RecordDate { get; set; }
     }
 
     #endregion
@@ -131,7 +131,7 @@ public partial class SensorDeviceDatasController : ControllerBase
 
         public required decimal? Value { get; set; }
 
-        public required LocalDate RecordDate { get; set; }
+        public required LocalDateTime RecordDate { get; set; }
     }
 
     #endregion
@@ -163,7 +163,7 @@ public partial class SensorDeviceDatasController : ControllerBase
 
         public required decimal? Value { get; set; }
 
-        public required LocalDate RecordDate { get; set; }
+        public required LocalDateTime RecordDate { get; set; }
     }
 
     [HttpPatch("{id:int}")]
@@ -417,7 +417,7 @@ public async Task<ActionResult<Dictionary<int, List<SensorDateStatistics>>>> Get
 
 public class SensorDateStatistics
 {
-    public LocalDate RecordedDate { get; set; }
+    public LocalDateTime RecordedDate { get; set; }
     public decimal Sum { get; set; }
     public decimal Max { get; set; }
     public decimal Min { get; set; }
@@ -560,7 +560,7 @@ public class SensorDateStatistics
         public SensorDevice SensorDevice { get; set; } = null!;
         public int SensorDeviceId { get; set; }
         public decimal? Value { get; set; }
-        public LocalDate RecordDate { get; set; }
+        public LocalDateTime RecordDate { get; set; }
         public Statistics? Statistics { get; set; }
     }
 
@@ -593,7 +593,7 @@ public class SensorDateStatistics
     public class SensorStatisticsModel
     {
         public int SensorId { get; set; }
-        public LocalDate? RecordDate { get; set; }
+        public LocalDateTime? RecordDate { get; set; }
         public decimal Average { get; set; }
         public decimal Minimum { get; set; }
         public decimal Maximum { get; set; }

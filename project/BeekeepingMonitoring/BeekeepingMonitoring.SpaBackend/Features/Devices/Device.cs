@@ -1,7 +1,7 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NodaTime;
 
 namespace BeekeepingMonitoring.SpaBackend.Features.Devices;
 
@@ -44,7 +44,7 @@ public class Device
 
     public required decimal? Longitude { get; set; }
 
-    public required DateTimeOffset? InstalledDate { get; set; }
+    public required LocalDateTime? InstalledDate { get; set; }
 
     [MaxLength(250)]
     public required string? Uid { get; set; }
