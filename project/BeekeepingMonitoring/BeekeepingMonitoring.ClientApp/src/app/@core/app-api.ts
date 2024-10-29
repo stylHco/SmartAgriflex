@@ -3903,7 +3903,7 @@ export interface ISensorDeviceUpdateModel {
 export class SensorDeviceDataCreateModel implements ISensorDeviceDataCreateModel {
     sensorDeviceId!: number;
     value!: number | null;
-    recordDate!: LocalDate;
+    recordDate!: Date;
 
     constructor(data?: ISensorDeviceDataCreateModel) {
         if (data) {
@@ -3918,7 +3918,7 @@ export class SensorDeviceDataCreateModel implements ISensorDeviceDataCreateModel
         if (_data) {
             this.sensorDeviceId = _data["sensorDeviceId"] !== undefined ? _data["sensorDeviceId"] : <any>null;
             this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
-            this.recordDate = _data["recordDate"] ? LocalDate.parse(_data["recordDate"].toString()) : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
         }
     }
 
@@ -3933,7 +3933,7 @@ export class SensorDeviceDataCreateModel implements ISensorDeviceDataCreateModel
         data = typeof data === 'object' ? data : {};
         data["sensorDeviceId"] = this.sensorDeviceId !== undefined ? this.sensorDeviceId : <any>null;
         data["value"] = this.value !== undefined ? this.value : <any>null;
-        data["recordDate"] = this.recordDate ? this.recordDate.toString() : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         return data;
     }
 
@@ -3948,14 +3948,14 @@ export class SensorDeviceDataCreateModel implements ISensorDeviceDataCreateModel
 export interface ISensorDeviceDataCreateModel {
     sensorDeviceId: number;
     value: number | null;
-    recordDate: LocalDate;
+    recordDate: Date;
 }
 
 export class SensorDeviceDatasListModel implements ISensorDeviceDatasListModel {
     id!: number;
     sensorDevice!: SensorDeviceReferenceModel;
     value!: number | null;
-    recordDate!: LocalDate;
+    recordDate!: Date;
 
     constructor(data?: ISensorDeviceDatasListModel) {
         if (data) {
@@ -3974,7 +3974,7 @@ export class SensorDeviceDatasListModel implements ISensorDeviceDatasListModel {
             this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
             this.sensorDevice = _data["sensorDevice"] ? SensorDeviceReferenceModel.fromJS(_data["sensorDevice"]) : new SensorDeviceReferenceModel();
             this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
-            this.recordDate = _data["recordDate"] ? LocalDate.parse(_data["recordDate"].toString()) : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
         }
     }
 
@@ -3990,7 +3990,7 @@ export class SensorDeviceDatasListModel implements ISensorDeviceDatasListModel {
         data["id"] = this.id !== undefined ? this.id : <any>null;
         data["sensorDevice"] = this.sensorDevice ? this.sensorDevice.toJSON() : <any>null;
         data["value"] = this.value !== undefined ? this.value : <any>null;
-        data["recordDate"] = this.recordDate ? this.recordDate.toString() : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         return data;
     }
 
@@ -4006,11 +4006,14 @@ export interface ISensorDeviceDatasListModel {
     id: number;
     sensorDevice: SensorDeviceReferenceModel;
     value: number | null;
-    recordDate: LocalDate;
+    recordDate: Date;
 }
 
 export class SensorDeviceDataReferenceModel implements ISensorDeviceDataReferenceModel {
     id!: number;
+    sensorDevice!: SensorDeviceReferenceModel;
+    value!: number | null;
+    recordDate!: Date;
 
     constructor(data?: ISensorDeviceDataReferenceModel) {
         if (data) {
@@ -4019,11 +4022,17 @@ export class SensorDeviceDataReferenceModel implements ISensorDeviceDataReferenc
                     (<any>this)[property] = (<any>data)[property];
             }
         }
+        if (!data) {
+            this.sensorDevice = new SensorDeviceReferenceModel();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensorDevice = _data["sensorDevice"] ? SensorDeviceReferenceModel.fromJS(_data["sensorDevice"]) : new SensorDeviceReferenceModel();
+            this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
         }
     }
 
@@ -4037,6 +4046,9 @@ export class SensorDeviceDataReferenceModel implements ISensorDeviceDataReferenc
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensorDevice"] = this.sensorDevice ? this.sensorDevice.toJSON() : <any>null;
+        data["value"] = this.value !== undefined ? this.value : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         return data;
     }
 
@@ -4050,13 +4062,16 @@ export class SensorDeviceDataReferenceModel implements ISensorDeviceDataReferenc
 
 export interface ISensorDeviceDataReferenceModel {
     id: number;
+    sensorDevice: SensorDeviceReferenceModel;
+    value: number | null;
+    recordDate: Date;
 }
 
 export class SensorDeviceDataDetailsModel implements ISensorDeviceDataDetailsModel {
     id!: number;
     sensorDevice!: SensorDeviceReferenceModel;
     value!: number | null;
-    recordDate!: LocalDate;
+    recordDate!: Date;
 
     constructor(data?: ISensorDeviceDataDetailsModel) {
         if (data) {
@@ -4075,7 +4090,7 @@ export class SensorDeviceDataDetailsModel implements ISensorDeviceDataDetailsMod
             this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
             this.sensorDevice = _data["sensorDevice"] ? SensorDeviceReferenceModel.fromJS(_data["sensorDevice"]) : new SensorDeviceReferenceModel();
             this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
-            this.recordDate = _data["recordDate"] ? LocalDate.parse(_data["recordDate"].toString()) : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
         }
     }
 
@@ -4091,7 +4106,7 @@ export class SensorDeviceDataDetailsModel implements ISensorDeviceDataDetailsMod
         data["id"] = this.id !== undefined ? this.id : <any>null;
         data["sensorDevice"] = this.sensorDevice ? this.sensorDevice.toJSON() : <any>null;
         data["value"] = this.value !== undefined ? this.value : <any>null;
-        data["recordDate"] = this.recordDate ? this.recordDate.toString() : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         return data;
     }
 
@@ -4107,13 +4122,13 @@ export interface ISensorDeviceDataDetailsModel {
     id: number;
     sensorDevice: SensorDeviceReferenceModel;
     value: number | null;
-    recordDate: LocalDate;
+    recordDate: Date;
 }
 
 export class SensorDeviceDataUpdateModel implements ISensorDeviceDataUpdateModel {
     sensorDeviceId!: number;
     value!: number | null;
-    recordDate!: LocalDate;
+    recordDate!: Date;
 
     constructor(data?: ISensorDeviceDataUpdateModel) {
         if (data) {
@@ -4128,7 +4143,7 @@ export class SensorDeviceDataUpdateModel implements ISensorDeviceDataUpdateModel
         if (_data) {
             this.sensorDeviceId = _data["sensorDeviceId"] !== undefined ? _data["sensorDeviceId"] : <any>null;
             this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
-            this.recordDate = _data["recordDate"] ? LocalDate.parse(_data["recordDate"].toString()) : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
         }
     }
 
@@ -4143,7 +4158,7 @@ export class SensorDeviceDataUpdateModel implements ISensorDeviceDataUpdateModel
         data = typeof data === 'object' ? data : {};
         data["sensorDeviceId"] = this.sensorDeviceId !== undefined ? this.sensorDeviceId : <any>null;
         data["value"] = this.value !== undefined ? this.value : <any>null;
-        data["recordDate"] = this.recordDate ? this.recordDate.toString() : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         return data;
     }
 
@@ -4158,7 +4173,7 @@ export class SensorDeviceDataUpdateModel implements ISensorDeviceDataUpdateModel
 export interface ISensorDeviceDataUpdateModel {
     sensorDeviceId: number;
     value: number | null;
-    recordDate: LocalDate;
+    recordDate: Date;
 }
 
 export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel {
@@ -4166,7 +4181,7 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
     sensorDevice!: SensorDevice;
     sensorDeviceId!: number;
     value!: number | null;
-    recordDate!: LocalDate;
+    recordDate!: Date;
     statistics!: SensorsDataStatistics | null;
 
     constructor(data?: ISensorsDataFullDetailsModel) {
@@ -4187,7 +4202,7 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
             this.sensorDevice = _data["sensorDevice"] ? SensorDevice.fromJS(_data["sensorDevice"]) : new SensorDevice();
             this.sensorDeviceId = _data["sensorDeviceId"] !== undefined ? _data["sensorDeviceId"] : <any>null;
             this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
-            this.recordDate = _data["recordDate"] ? LocalDate.parse(_data["recordDate"].toString()) : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
             this.statistics = _data["statistics"] ? SensorsDataStatistics.fromJS(_data["statistics"]) : <any>null;
         }
     }
@@ -4205,7 +4220,7 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
         data["sensorDevice"] = this.sensorDevice ? this.sensorDevice.toJSON() : <any>null;
         data["sensorDeviceId"] = this.sensorDeviceId !== undefined ? this.sensorDeviceId : <any>null;
         data["value"] = this.value !== undefined ? this.value : <any>null;
-        data["recordDate"] = this.recordDate ? this.recordDate.toString() : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
         data["statistics"] = this.statistics ? this.statistics.toJSON() : <any>null;
         return data;
     }
@@ -4223,7 +4238,7 @@ export interface ISensorsDataFullDetailsModel {
     sensorDevice: SensorDevice;
     sensorDeviceId: number;
     value: number | null;
-    recordDate: LocalDate;
+    recordDate: Date;
     statistics: SensorsDataStatistics | null;
 }
 
@@ -4476,7 +4491,7 @@ export interface ISensorsDataStatistics {
 }
 
 export class SensorDateStatistics implements ISensorDateStatistics {
-    recordedDate!: LocalDate;
+    recordedDate!: Date;
     sum!: number;
     max!: number;
     min!: number;
@@ -4493,7 +4508,7 @@ export class SensorDateStatistics implements ISensorDateStatistics {
 
     init(_data?: any) {
         if (_data) {
-            this.recordedDate = _data["recordedDate"] ? LocalDate.parse(_data["recordedDate"].toString()) : <any>null;
+            this.recordedDate = _data["recordedDate"] ? new Date(_data["recordedDate"].toString()) : <any>null;
             this.sum = _data["sum"] !== undefined ? _data["sum"] : <any>null;
             this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
             this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
@@ -4510,7 +4525,7 @@ export class SensorDateStatistics implements ISensorDateStatistics {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["recordedDate"] = this.recordedDate ? this.recordedDate.toString() : <any>null;
+        data["recordedDate"] = this.recordedDate ? this.recordedDate.toISOString() : <any>null;
         data["sum"] = this.sum !== undefined ? this.sum : <any>null;
         data["max"] = this.max !== undefined ? this.max : <any>null;
         data["min"] = this.min !== undefined ? this.min : <any>null;
@@ -4527,7 +4542,7 @@ export class SensorDateStatistics implements ISensorDateStatistics {
 }
 
 export interface ISensorDateStatistics {
-    recordedDate: LocalDate;
+    recordedDate: Date;
     sum: number;
     max: number;
     min: number;
