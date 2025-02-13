@@ -5,7 +5,7 @@ import {RepresentingOption, getRepresentingOptions$} from "../../@shared/utils/r
 import {ISensorDeviceReferenceModel} from "../app-api";
 
 export type SensorDeviceIdentifyingProps = Pick<ISensorDeviceReferenceModel, 'id'>;
-export type SensorDeviceRepresentingProps = Pick<ISensorDeviceReferenceModel, 'id'>;
+export type SensorDeviceRepresentingProps = Pick<ISensorDeviceReferenceModel, 'id' | 'device' | 'sensor'>;
 
 export type SensorDeviceReferencingProps = SensorDeviceIdentifyingProps & SensorDeviceRepresentingProps;
 
@@ -16,7 +16,9 @@ export type SensorDeviceOption<TEntry = never> = RepresentingOption<SensorDevice
 })
 export class SensorDeviceRepresentingService {
   public getLabel(sensorDevice: SensorDeviceRepresentingProps): Changeable<string> {
-    return changeableFromConstValue(String(sensorDevice.id));
+    let sensor = sensorDevice.sensor;
+    let device = sensorDevice.device;
+    return changeableFromConstValue(String(`${sensorDevice.id} ${sensor.name}, ${device.nickname}`));
   }
 
   public getOptions<TEntry extends SensorDeviceReferencingProps>(

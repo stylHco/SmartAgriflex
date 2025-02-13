@@ -29,7 +29,14 @@ export class MainSegmentMenuComponent {
         {label: 'Dashboard', icon: 'pi pi-fw pi-chart-bar', routerLink: '/app/dashboards/configurable'},
       ],
     },
-
+    {
+      label: 'Data Visualization',
+      items: [
+        {label: 'Live Data', icon: 'pi pi-fw pi-sync', routerLink: '/app/live-data'},
+        {label: 'History', icon: 'pi pi-fw pi-chart-line', routerLink: '/app/history-data'},
+        {label: 'Locations', icon: 'pi pi-fw pi-map-marker', routerLink: '/app/sensors'},
+      ],
+    },
     {
       label: 'Data management',
       items: [

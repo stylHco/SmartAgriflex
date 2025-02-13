@@ -42,6 +42,7 @@ import {DropdownModule} from "primeng/dropdown";
 import {DropdownDefaultsModule} from "../../../@shared/defaults/dropdown-defaults.module";
 import {InputNumberModule} from "primeng/inputnumber";
 import {CalendarModule} from "primeng/calendar";
+import {OffsetDateTime} from "@js-joda/core";
 
 interface SensorDeviceDataCreateForm {
   sensorDevice: FormControl<SensorDeviceReferenceModel | null>;
@@ -131,7 +132,7 @@ export class ManageSensorDeviceDataComponent implements OnInit {
       form.setValue({
         sensorDevice: this.sensorDevices.find(s => s.id === item.sensorDeviceId) ?? null,
         value: item.value,
-        recordDate: localDateToNative(item.recordDate),
+        recordDate: item.recordDate!,
       });
 
       this.updateEditItemTitle();
@@ -187,7 +188,7 @@ export class ManageSensorDeviceDataComponent implements OnInit {
     const model = new SensorDeviceDataCreateModel({
       sensorDeviceId: sensorDevice!.id,
       value: form.controls.value.value!,
-      recordDate: nativeToLocalDate(form.controls.recordDate.value)!,
+      recordDate: form.controls.recordDate.value!,
     });
 
     this.sensorDeviceDatasClient.create(model)
@@ -217,7 +218,7 @@ export class ManageSensorDeviceDataComponent implements OnInit {
     const model = new SensorDeviceDataUpdateModel({
       sensorDeviceId: sensorDevice!.id,
       value: form.controls.value.value!,
-      recordDate: nativeToLocalDate(form.controls.recordDate.value)!,
+      recordDate: form.controls.recordDate.value!,
     });
 
     this.sensorDeviceDatasClient.update(this.itemId!, model)

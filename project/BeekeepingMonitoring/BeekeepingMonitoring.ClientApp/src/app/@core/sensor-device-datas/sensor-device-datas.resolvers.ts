@@ -15,3 +15,6 @@ export const resolveSensorDeviceDataForUpdate = wrapResolverApiResult(
   route => inject(SensorDeviceDatasClient)
     .getForUpdate(+route.paramMap.get('id')!)
 );
+
+export const resolveFullSensorsDeviceData= wrapResolverApiResult(route => inject(SensorDeviceDatasClient)
+  .getForSensor(route.paramMap.get('sensorId')!,route.paramMap.get('deviceId')!));

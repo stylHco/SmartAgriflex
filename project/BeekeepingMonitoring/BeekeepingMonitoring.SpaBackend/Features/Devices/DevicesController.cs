@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using NJsonSchema.Annotations;
+using NodaTime;
 
 namespace BeekeepingMonitoring.SpaBackend.Features.Devices;
 
@@ -46,7 +47,7 @@ public partial class DevicesController : ControllerBase
 
         public required decimal? Longitude { get; set; }
 
-        public required DateTimeOffset? InstalledDate { get; set; }
+        public required LocalDateTime? InstalledDate { get; set; }
 
         [MaxLength(250)]
         public required string? Uid { get; set; }
@@ -98,7 +99,7 @@ public partial class DevicesController : ControllerBase
 
         public required decimal? Longitude { get; set; }
 
-        public required DateTimeOffset? InstalledDate { get; set; }
+        public required LocalDateTime? InstalledDate { get; set; }
 
         [MaxLength(250)]
         public required string? Uid { get; set; }
@@ -159,7 +160,7 @@ public partial class DevicesController : ControllerBase
 
         public required decimal? Longitude { get; set; }
 
-        public required DateTimeOffset? InstalledDate { get; set; }
+        public required LocalDateTime? InstalledDate { get; set; }
 
         [MaxLength(250)]
         public required string? Uid { get; set; }
@@ -206,7 +207,7 @@ public partial class DevicesController : ControllerBase
 
         public required decimal? Longitude { get; set; }
 
-        public required DateTimeOffset? InstalledDate { get; set; }
+        public required LocalDateTime? InstalledDate { get; set; }
 
         [MaxLength(250)]
         public required string? Uid { get; set; }
