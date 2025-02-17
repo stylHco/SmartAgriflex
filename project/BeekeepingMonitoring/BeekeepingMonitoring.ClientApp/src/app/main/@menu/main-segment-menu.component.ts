@@ -40,6 +40,7 @@ export class MainSegmentMenuComponent {
     {
       label: 'Data management',
       items: [
+        {label: 'Custom Rules', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/custom-rules'},
         {label: 'Devices', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/devices'},
         {label: 'Sensors', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/sensors'},
         {label: 'Sensor devices', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/sensor-devices'},
