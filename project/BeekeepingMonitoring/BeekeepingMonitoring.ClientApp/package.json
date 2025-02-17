@@ -31,7 +31,7 @@
     "jspdf-autotable": "^3.5.31",
     "ngx-resize-observer": "~2.6.0",
     "primeflex": "^3.3.0",
-    "primeicons": "^6.0.1",
+    "primeicons": "^7.0.0",
     "primeng": "^17.10.0",
     "rxjs": "~7.8.1",
     "tslib": "^2.3.0",

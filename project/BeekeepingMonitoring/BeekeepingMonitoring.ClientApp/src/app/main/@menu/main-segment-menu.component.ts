@@ -40,11 +40,11 @@ export class MainSegmentMenuComponent {
     {
       label: 'Data management',
       items: [
-        {label: 'Custom Rules', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/custom-rules'},
-        {label: 'Devices', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/devices'},
-        {label: 'Sensors', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/sensors'},
-        {label: 'Sensor devices', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/sensor-devices'},
-        {label: 'Sensor device datas', icon: 'pi pi-fw pi-briefcase', routerLink: '/app/sensor-device-datas'},
+        {label: 'Custom Rules', icon: 'pi pi-fw pi-exclamation-triangle', routerLink: '/app/custom-rules'},
+        {label: 'Devices', icon: 'pi pi-fw pi-microchip', routerLink: '/app/devices'},
+        {label: 'Sensors', icon: 'pi pi-fw pi-gauge', routerLink: '/app/sensors'},
+        {label: 'Sensor devices', icon: 'pi pi-fw pi-cog', routerLink: '/app/sensor-devices'},
+        {label: 'Sensor device datas', icon: 'pi pi-fw pi-chart-bar', routerLink: '/app/sensor-device-datas'},
         // Add entries for your features here
       ],
     },
