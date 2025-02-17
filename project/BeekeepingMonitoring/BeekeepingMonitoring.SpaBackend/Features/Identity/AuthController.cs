@@ -25,7 +25,7 @@ public partial class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly IUserStore<ApplicationUser> _userStore;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IAuthMailer _authMailer;
+    // private readonly IAuthMailer _authMailer;
 
     #region Status
 
@@ -145,18 +145,18 @@ public partial class AuthController : ControllerBase
         };
 
         // Don't wait for the email to be sent
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await _authMailer.SendEmailConfirm(payload);
-            }
-            catch (Exception e)
-            {
-                // TODO: Retry system
-                _logger.LogError(e, "Failed to send registration email");
-            }
-        });
+        // _ = Task.Run(async () =>
+        // {
+        //     try
+        //     {
+        //         await _authMailer.SendEmailConfirm(payload);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         // TODO: Retry system
+        //         _logger.LogError(e, "Failed to send registration email");
+        //     }
+        // });
 
         return Ok(result);
     }
@@ -187,7 +187,7 @@ public partial class AuthController : ControllerBase
             CallbackUrl = callbackUrl,
         };
 
-        await _authMailer.SendEmailConfirm(payload);
+        // await _authMailer.SendEmailConfirm(payload);
 
         return Ok();
     }
@@ -249,7 +249,7 @@ public partial class AuthController : ControllerBase
             CallbackUrl = callbackUrl,
         };
 
-        await _authMailer.SendPasswordReset(payload);
+        // await _authMailer.SendPasswordReset(payload);
 
         return Ok();
     }
