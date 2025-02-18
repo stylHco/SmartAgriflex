@@ -1,4 +1,5 @@
 using System;
+using BeekeepingMonitoring.SpaBackend.Features.CustomRules;
 using BeekeepingMonitoring.SpaBackend.Features.Dashboard;
 using BeekeepingMonitoring.SpaBackend.Features.Identity;
 using BeekeepingMonitoring.SpaBackend.Features.Devices;
@@ -20,6 +21,7 @@ public class ApplicationDbContext : IdentityUserContext<ApplicationUser, Guid>
     public DbSet<Sensor> Sensors { get; set; } = null!;
     public DbSet<SensorDevice> SensorDevices { get; set; } = null!;
     public DbSet<SensorDeviceData> SensorDeviceDatas { get; set; } = null!;
+    public DbSet<CustomRule> CustomRules { get; set; } = null!;
 
     // Add DbSet<>s for your entities
 

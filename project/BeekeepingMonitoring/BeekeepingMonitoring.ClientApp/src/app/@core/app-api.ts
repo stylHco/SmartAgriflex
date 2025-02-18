@@ -3256,6 +3256,436 @@ export class DashboardTablesClient {
     }
 }
 
+@Injectable({
+    providedIn: 'root'
+})
+export class CustomRulesClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(APP_API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ?? "http://localhost:33395";
+    }
+
+    create(model: CustomRuleCreateModel): Observable<number> {
+        let url_ = this.baseUrl + "/_api/custom-rules";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCreate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCreate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<number>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<number>;
+        }));
+    }
+
+    protected processCreate(response: HttpResponseBase): Observable<number> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 201) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : <any>null;
+    
+            return _observableOf(result201);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    list(): Observable<CustomRulesListModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-rules";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processList(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processList(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRulesListModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRulesListModel[]>;
+        }));
+    }
+
+    protected processList(response: HttpResponseBase): Observable<CustomRulesListModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CustomRulesListModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    listForReference(): Observable<CustomRuleReferenceModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-rules/for-reference";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processListForReference(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processListForReference(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRuleReferenceModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRuleReferenceModel[]>;
+        }));
+    }
+
+    protected processListForReference(response: HttpResponseBase): Observable<CustomRuleReferenceModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CustomRuleReferenceModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    get(id: number): Observable<CustomRulesDetailsModel> {
+        let url_ = this.baseUrl + "/_api/custom-rules/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGet(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGet(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRulesDetailsModel>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRulesDetailsModel>;
+        }));
+    }
+
+    protected processGet(response: HttpResponseBase): Observable<CustomRulesDetailsModel> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomRulesDetailsModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    update(id: number, model: CustomRuleUpdateModel): Observable<CustomRuleUpdateModel> {
+        let url_ = this.baseUrl + "/_api/custom-rules/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("patch", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processUpdate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processUpdate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRuleUpdateModel>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRuleUpdateModel>;
+        }));
+    }
+
+    protected processUpdate(response: HttpResponseBase): Observable<CustomRuleUpdateModel> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomRuleUpdateModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 400) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status === 409) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result409);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    delete(id: number): Observable<void> {
+        let url_ = this.baseUrl + "/_api/custom-rules/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+            })
+        };
+
+        return this.http.request("delete", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDelete(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDelete(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processDelete(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getForUpdate(id: number): Observable<CustomRuleUpdateModel> {
+        let url_ = this.baseUrl + "/_api/custom-rules/{id}/for-update";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetForUpdate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetForUpdate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRuleUpdateModel>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRuleUpdateModel>;
+        }));
+    }
+
+    protected processGetForUpdate(response: HttpResponseBase): Observable<CustomRuleUpdateModel> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomRuleUpdateModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
 export class ProblemDetails implements IProblemDetails {
     type!: string | null;
     title!: string | null;
@@ -5881,6 +6311,314 @@ export interface IDashboardTableAssociationRule {
     confidence: number;
     support: number;
     lift: number;
+}
+
+export class CustomRuleCreateModel implements ICustomRuleCreateModel {
+    sensorId!: number;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRuleCreateModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sensorId = _data["sensorId"] !== undefined ? _data["sensorId"] : <any>null;
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRuleCreateModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRuleCreateModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sensorId"] = this.sensorId !== undefined ? this.sensorId : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRuleCreateModel {
+        const json = this.toJSON();
+        let result = new CustomRuleCreateModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRuleCreateModel {
+    sensorId: number;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
+export class CustomRulesListModel implements ICustomRulesListModel {
+    id!: number;
+    sensor!: SensorReferenceModel;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRulesListModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.sensor = new SensorReferenceModel();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRulesListModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRulesListModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRulesListModel {
+        const json = this.toJSON();
+        let result = new CustomRulesListModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRulesListModel {
+    id: number;
+    sensor: SensorReferenceModel;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
+export class CustomRuleReferenceModel implements ICustomRuleReferenceModel {
+    id!: number;
+    sensor!: SensorReferenceModel;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRuleReferenceModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.sensor = new SensorReferenceModel();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRuleReferenceModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRuleReferenceModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRuleReferenceModel {
+        const json = this.toJSON();
+        let result = new CustomRuleReferenceModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRuleReferenceModel {
+    id: number;
+    sensor: SensorReferenceModel;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
+export class CustomRulesDetailsModel implements ICustomRulesDetailsModel {
+    id!: number;
+    sensor!: SensorReferenceModel;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRulesDetailsModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.sensor = new SensorReferenceModel();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRulesDetailsModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRulesDetailsModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRulesDetailsModel {
+        const json = this.toJSON();
+        let result = new CustomRulesDetailsModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRulesDetailsModel {
+    id: number;
+    sensor: SensorReferenceModel;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
+export class CustomRuleUpdateModel implements ICustomRuleUpdateModel {
+    sensorId!: number;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRuleUpdateModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sensorId = _data["sensorId"] !== undefined ? _data["sensorId"] : <any>null;
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRuleUpdateModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRuleUpdateModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sensorId"] = this.sensorId !== undefined ? this.sensorId : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRuleUpdateModel {
+        const json = this.toJSON();
+        let result = new CustomRuleUpdateModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRuleUpdateModel {
+    sensorId: number;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
 }
 
 export interface FileResponse {

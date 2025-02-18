@@ -46,6 +46,11 @@ const routes: Routes = [{
         .then(m => m.routes),
     },
     {
+      path: 'custom-rules',
+      loadChildren: () => import('./custom-rules/custom-rules.entrypoint')
+        .then(m => m.routes),
+    },
+    {
       path: 'sensors',
       loadChildren: () => import('./sensors/sensors.entrypoint')
         .then(m => m.routes),
