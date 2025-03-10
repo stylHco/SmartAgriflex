@@ -143,6 +143,7 @@ export class ViewHistoryChartsComponent implements OnInit {
               this.showChart = true
               this.specificSensorData = data;
               this.transformedData = transformDataForSpecificSensors(this.specificSensorData, [EChartAvailableData.value]);
+              console.log(this.transformedData)
             }
           )
 

@@ -236,7 +236,7 @@ public partial class SensorDeviceDatasController : ControllerBase
     [HttpGet("get-for-sensor/{sensorIdStr}/{deviceIdStr}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<FullDetailsModel>>> GetForSensor(string sensorIdStr, string deviceIdStr)
+    public async Task<ActionResult<List<FullDetailsModel>>> GetForSensor(string sensorIdStr = "all", string deviceIdStr = "all")
     {
         var sensorIdStrings = sensorIdStr.Split(',');
         var deviceIdStrings = deviceIdStr.Split(',');
@@ -248,14 +248,40 @@ public partial class SensorDeviceDatasController : ControllerBase
         }
 
         // Try parsing the device IDs
-        if (!deviceIdStrings.All(d => int.TryParse(d, out _)))
+        if (deviceIdStr != "all" && !deviceIdStrings.All(d => int.TryParse(d, out _)))
         {
             return BadRequest("One or more Device IDs are not valid integers.");
         }
 
         // Convert to integer arrays
-        int[] sensorIdArray = sensorIdStrings.Select(int.Parse).ToArray();
-        int[] deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
+        int[] sensorIdArray = null;
+        int[] deviceIdArray = null;
+        
+
+        if (sensorIdStr != "all")
+        {
+            // Try parsing the device IDs
+            if (!sensorIdStrings.All(d => int.TryParse(d, out _)))
+            {
+                return BadRequest("One or more Sesnor IDs are not valid integers.");
+            }
+
+            // Convert to integer arrays
+            deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
+        }
+        
+        if (deviceIdStr != "all")
+        {
+            // Try parsing the device IDs
+            if (!deviceIdStrings.All(d => int.TryParse(d, out _)))
+            {
+                return BadRequest("One or more Device IDs are not valid integers.");
+            }
+
+            // Convert to integer arrays
+            deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
+        }
+        
 
         // Base query with INNER JOINs
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
@@ -264,12 +290,12 @@ public partial class SensorDeviceDatasController : ControllerBase
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Device);
 
-        // Check if at least one of the arrays is provided and non-empty
-        if ((sensorIdArray == null || sensorIdArray.Length == 0) &&
-            (deviceIdArray == null || deviceIdArray.Length == 0))
-        {
-            return BadRequest("At least one sensor ID or device ID must be provided.");
-        }
+        // // Check if at least one of the arrays is provided and non-empty
+        // if ((sensorIdArray == null || sensorIdArray.Length == 0) &&
+        //     (deviceIdArray == null || deviceIdArray.Length == 0))
+        // {
+        //     return BadRequest("At least one sensor ID or device ID must be provided.");
+        // }
 
         // Validate and filter by sensor IDs
         if (sensorIdArray != null && sensorIdArray.Length > 0)
@@ -424,6 +450,7 @@ public class SensorDateStatistics
     public decimal Avg { get; set; }
 }
 
+    // @TODO: make some clean up
     // public async Task<ActionResult<List<FullDetailsModel>>> GetSensor(string sensorIdStr, string deviceIdStr)
     // {
     //     // Handle null or empty strings for sensorIdStr and deviceIdStr
