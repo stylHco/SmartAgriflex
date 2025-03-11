@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BeekeepingMonitoring.SpaBackend.Data;
 using BeekeepingMonitoring.SpaBackend.Features.CustomRules;
+using BeekeepingMonitoring.SpaBackend.Features.Devices;
 using BeekeepingMonitoring.SpaBackend.Features.SensorDeviceDatas;
 using BeekeepingMonitoring.SpaBackend.Features.SensorDevices;
 using BeekeepingMonitoring.SpaBackend.Features.Sensors;
@@ -31,7 +32,6 @@ public partial class CustomDashboardController : ControllerBase
     #region SharesFunctionsAndViriables
 
     private readonly ApplicationDbContext _dbContext;
-    // private readonly TimeZoneConverterService _timeZoneConverterService;
 
     public enum DashboardSensorTypeEnum
     {
@@ -44,11 +44,11 @@ public partial class CustomDashboardController : ControllerBase
 
     public enum DashboardIntervalTypeEnum
     {
-        hourly = 0,
-        daily = 1,
-        weekly = 2,
-        monthly = 3,
-        yearly = 4,
+        Hourly = 0,
+        Daily = 1,
+        Weekly = 2,
+        Monthly = 3,
+        Yearly = 4,
     }
 
     string getSensorTypeName(DashboardSensorTypeEnum dashboardSensorTypeEnum)
@@ -68,30 +68,6 @@ public partial class CustomDashboardController : ControllerBase
             default:
                 return "";
         }
-
-        return "";
-    }
-
-    // @TODO Delete this function on cleanup does not serve any purpose 
-    string getIntervalTypeName(DashboardIntervalTypeEnum dashboardIntervalTypeEnum)
-    {
-        switch (dashboardIntervalTypeEnum)
-        {
-            case DashboardIntervalTypeEnum.hourly:
-                return "hourly";
-            case DashboardIntervalTypeEnum.daily:
-                return "daily";
-            case DashboardIntervalTypeEnum.weekly:
-                return "weekly";
-            case DashboardIntervalTypeEnum.monthly:
-                return "monthly";
-            case DashboardIntervalTypeEnum.yearly:
-                return "yearly";
-            default:
-                return "";
-        }
-
-        return "";
     }
 
     #endregion
@@ -261,7 +237,7 @@ public partial class CustomDashboardController : ControllerBase
         var timeZone = DateTimeZoneProviders.Tzdb["Asia/Nicosia"];
         var startLocalDateTime = startDate.AtStartOfDayInZone(timeZone).LocalDateTime;
         var endLocalDateTime = endDate.PlusDays(1).AtStartOfDayInZone(timeZone).LocalDateTime;
-        
+
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Sensor)
@@ -280,28 +256,28 @@ public partial class CustomDashboardController : ControllerBase
             {
                 Year = s.RecordDate.Year,
                 Month = s.RecordDate.Month,
-                Week = intervalTypeEnum == DashboardIntervalTypeEnum.weekly
+                Week = intervalTypeEnum == DashboardIntervalTypeEnum.Weekly
                     ? ISOWeek.GetWeekOfYear(s.RecordDate.ToDateTimeUnspecified())
                     : 0,
-                Day = (intervalTypeEnum == DashboardIntervalTypeEnum.daily ||
-                       intervalTypeEnum == DashboardIntervalTypeEnum.hourly)
+                Day = (intervalTypeEnum == DashboardIntervalTypeEnum.Daily ||
+                       intervalTypeEnum == DashboardIntervalTypeEnum.Hourly)
                     ? s.RecordDate.Day
                     : 1,
-                Hour = intervalTypeEnum == DashboardIntervalTypeEnum.hourly ? s.RecordDate.Hour : 0
+                Hour = intervalTypeEnum == DashboardIntervalTypeEnum.Hourly ? s.RecordDate.Hour : 0
             })
             .Select(g => new
             {
                 TimePeriod = intervalTypeEnum switch
                 {
-                    DashboardIntervalTypeEnum.hourly => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day,
+                    DashboardIntervalTypeEnum.Hourly => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day,
                         g.Key.Hour, 0),
-                    DashboardIntervalTypeEnum.daily => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, 0, 0),
-                    DashboardIntervalTypeEnum.weekly =>
+                    DashboardIntervalTypeEnum.Daily => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, 0, 0),
+                    DashboardIntervalTypeEnum.Weekly =>
                         LocalDate.FromDateTime(ISOWeek.ToDateTime(g.Key.Year, g.Key.Week, DayOfWeek.Monday))
                             .AtStartOfDayInZone(timeZone)
                             .LocalDateTime,
-                    DashboardIntervalTypeEnum.monthly => new LocalDateTime(g.Key.Year, g.Key.Month, 1, 0, 0),
-                    DashboardIntervalTypeEnum.yearly => new LocalDateTime(g.Key.Year, 1, 1, 0, 0),
+                    DashboardIntervalTypeEnum.Monthly => new LocalDateTime(g.Key.Year, g.Key.Month, 1, 0, 0),
+                    DashboardIntervalTypeEnum.Yearly => new LocalDateTime(g.Key.Year, 1, 1, 0, 0),
                     _ => throw new ArgumentException("Invalid interval type.")
                 },
                 AvgValue = g.Average(a => a.Value ?? 0),
@@ -358,105 +334,141 @@ public partial class CustomDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorDataFullDetailsModel>>> GetYtdComparisonForSensor(
-        DashboardSensorTypeEnum sensorTypeEnum, int year1, int year2, string deviceIdStr = "all")
+        DashboardSensorTypeEnum sensorTypeEnum, int year1, int year2)
     {
-        // check the valitity of the years
-        if (year1 <= 0 || year2 <= 0)
-        {
-            return BadRequest("Provided year does not exists");
-        }
-
         string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
 
-        // check if selected sensor type exists 
         if (selectedSensor == null)
         {
             return BadRequest("Sensor is invalid.");
         }
 
-        var deviceIdStrings = deviceIdStr.Split(',');
-        int[] deviceIdArray = null;
+        IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
+            .Include(sd => sd.SensorDevice)
+            .ThenInclude(sd => sd.Sensor)
+            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id &&
+                         sd.RecordDate.Year == year1 ||
+                         sd.RecordDate.Year == year2
+            );
 
-        if (deviceIdStr != "all")
-        {
-            // Try parsing the device IDs
-            if (!deviceIdStrings.All(d => int.TryParse(d, out _)))
+        var rules = await _dbContext.CustomRules
+            .Where(r => r.SensorId == selectedSensor.Id)
+            .ToListAsync();
+
+        var sensorData = query
+            .AsEnumerable()
+            .GroupBy(g => new
             {
-                return BadRequest("One or more Device IDs are not valid integers.");
-            }
+                g.RecordDate.Year,
+                Month = g.RecordDate.Month,
+            })
+            .Select(s => new
+            {
+                TimePeriod = new LocalDateTime(s.Key.Year, s.Key.Month, 1, 0, 0),
+                AvgValue = s.Average(a => a.Value ?? 0),
+            })
+            .ToList();
 
-            deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
+        if (!sensorData.Any())
+        {
+            return BadRequest("There is no data for the selected sensor.");
         }
 
-        // Base query with INNER JOINs
+        var result = sensorData.Select(sd => new SensorDataFullDetailsModel()
+        {
+            Sensor = selectedSensor,
+            Value = sd.AvgValue,
+            RecordDate = sd.TimePeriod,
+            Rule = rules.Any() ? MatchRule(sd.AvgValue, rules) : "No rules"
+        }).ToList();
+
+        return Ok(result);
+    }
+
+    #endregion
+
+
+// =====================================================================================================================
+// =====================================================================================================================
+// =====================================================================================================================
+
+    #region liveData
+
+    [HttpGet("live-data/{sensorIdStr?}/{deviceIdStr?}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<FullDetailsModel>>> GetLiveData(
+        string sensorIdStr, string deviceIdStr)
+    {
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Sensor)
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Device);
 
-        query = query.Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor!.Id);
+        int[] deviceIdArray = null;
+        int[] sensorIdArray = null;
 
-        // Fetch rules for the given sensor ID
-        var rules = await _dbContext.CustomRules
-            .Where(r => r.SensorId == selectedSensor.Id)
+        // Parse and validate device IDs
+        deviceIdArray = deviceIdStr.Split(',')
+            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
+
+        var validDeviceIds = await _dbContext.Devices
+            .Where(d => deviceIdArray.Contains(d.Id))
+            .Select(d => d.Id)
             .ToListAsync();
 
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-        //=====================================================================
-
-        // Filter within date range
-        query = query
-            .Where(sd => sd.SensorDevice.SensorId == selectedSensor.Id &&
-                         sd.RecordDate.Year == year1 &&
-                         sd.RecordDate.Year == year2);
-
-        var groupedQuery = query
-            .AsEnumerable() // Moves execution to client side
-            .GroupBy(s => new
-            {
-                Year = s.RecordDate.Year,
-                Month = s.RecordDate.Month,
-                Week = ISOWeek.GetWeekOfYear(s.RecordDate.ToDateTimeUnspecified()),
-                Day = 1,
-                Hour = s.RecordDate.Hour
-            })
-            .Select(g => new
-            {
-                TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, 0),
-                AvgValue = g.Average(a => a.Value ?? 0),
-                SensorDevice = g.First().SensorDevice
-            })
-            .Take(10)
-            .ToList();
-
-        // Fetch the data
-        var sensorData = await query
-            .OrderByDescending(sd => sd.RecordDate)
-            .Take(10)
-            .ToListAsync();
-
-        if (!groupedQuery.Any())
+        if (validDeviceIds.Count != deviceIdArray.Length)
         {
-            return BadRequest("There are no data for that sensor");
+            return BadRequest("There is a non valid device ID");
         }
 
-        var result = groupedQuery.Select(sd => new SensorDataFullDetailsModel()
+        sensorIdArray = sensorIdStr.Split(',')
+            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
+
+        var validSensorIds = await _dbContext.Sensors
+            .Where(d => sensorIdArray.Contains(d.Id))
+            .Select(d => d.Id)
+            .ToListAsync();
+
+        if (validSensorIds.Count != sensorIdArray.Length)
         {
-            Sensor = selectedSensor,
-            Value = sd.AvgValue,
-            RecordDate = sd.TimePeriod,
-            Rule = MatchRule(sd.AvgValue, rules)
+            return BadRequest("There is a non valid sensor ID");
+        }
+
+        query = query.Where(sd =>
+            validDeviceIds.Contains(sd.SensorDevice.Device.Id) &&
+            validSensorIds.Contains(sd.SensorDevice.Sensor.Id)
+        );
+
+        // Group data using device then  top 10 per device
+        var groupedSensorData = query
+            .OrderByDescending(sd => sd.RecordDate)
+            .AsEnumerable()
+            .GroupBy(sd => sd.SensorDevice.Device.Id)
+            .SelectMany(g => g.Take(10))
+            .ToList();
+
+        if (!groupedSensorData.Any())
+        {
+            return BadRequest("There are no data for that sensor.");
+        }
+
+        var result = groupedSensorData.Select(sd => new FullDetailsModel
+        {
+            Id = sd.Id,
+            SensorDevice = sd.SensorDevice,
+            Value = sd.Value,
+            RecordDate = sd.RecordDate
         }).ToList();
 
         return Ok(result);
@@ -467,28 +479,106 @@ public partial class CustomDashboardController : ControllerBase
 // =====================================================================================================================
 // =====================================================================================================================
 // =====================================================================================================================
+// Filter devices based on sensors 
 
-    [JsonSchema("CustomDashboardTileUpdateModel")]
-    public class TileUpdateModel
+    #region filterDevices
+
+    [HttpGet("filter-devices/{sensorIdStr?}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<DeviceReferenceModel>>> FilterDevices(
+        string sensorIdStr)
     {
-        /// <summary>
-        /// Null = new tile.
-        /// </summary>
-        public required long? Id { get; init; }
+        int[] sensorIdArray = sensorIdStr.Split(',')
+            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
 
-        /// <summary>
-        /// Must be set when (and only when) Id is null.
-        /// Has no meaning outside of the API call which created the tile on the server.
-        /// </summary>
-        public required string? TempId { get; init; }
+        var validSensorIds = await _dbContext.Sensors
+            .Where(s => sensorIdArray.Contains(s.Id))
+            .Select(s => s.Id)
+            .ToListAsync();
 
-        public required int X { get; init; }
-        public required int Y { get; init; }
-        public required int Width { get; init; }
-        public required int Height { get; init; }
+        if (validSensorIds.Count != sensorIdArray.Length)
+        {
+            return BadRequest("There are invalid sensor Ids");
+        }
 
-        public required ConfDashboardTileType Type { get; init; }
+        var devicesWithSensors = await _dbContext.SensorDevices
+            .Where(sd => validSensorIds.Contains(sd.SensorId))
+            .GroupBy(sd => sd.DeviceId) 
+            .Where(g => g.Select(sd => sd.SensorId).Distinct().Count() ==
+                        validSensorIds.Count) 
+            .Select(g => g.Key) 
+            .ToListAsync();
 
-        public required PredefinedVisualizationTileOptions? PredefinedVisualizationOptions { get; init; }
+        var result = await _dbContext.Devices
+            .Where(d => devicesWithSensors.Contains(d.Id))
+            .Select(d => new DeviceReferenceModel
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Nickname = d.Nickname
+            })
+            .ToListAsync();
+
+        return Ok(result);
     }
+
+    #endregion
+
+// =====================================================================================================================
+// =====================================================================================================================
+// =====================================================================================================================
+// Filter sensors based on devices 
+
+    #region filterSensors
+
+    [HttpGet("filter-sensors/{deviceIdStr?}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<SensorReferenceModel>>> FilterSensor(
+        string deviceIdStr)
+    {
+        int[] deviceIdArray = deviceIdStr.Split(',')
+            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToArray();
+
+        var validDeviceIds = await _dbContext.Devices
+            .Where(s => deviceIdArray.Contains(s.Id))
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        if (validDeviceIds.Count != deviceIdArray.Length)
+        {
+            return BadRequest("There are invalid device Ids");
+        }
+
+        var sensorsWithDevices = await _dbContext.SensorDevices
+            .Where(sd => validDeviceIds.Contains(sd.DeviceId))
+            .GroupBy(sd => sd.SensorId) 
+            .Where(g => g.Select(sd => sd.DeviceId).Distinct().Count() ==
+                        validDeviceIds.Count) 
+            .Select(g => g.Key) // Select the DeviceId
+            .ToListAsync();
+
+        var result = await _dbContext.Sensors
+            .Where(d => sensorsWithDevices.Contains(d.Id))
+            .Select(d => new SensorReferenceModel
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description
+            })
+            .ToListAsync();
+
+        return Ok(result);
+    }
+
+    #endregion
+
+
 }
