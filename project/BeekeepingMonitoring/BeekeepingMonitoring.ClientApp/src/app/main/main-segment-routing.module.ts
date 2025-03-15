@@ -33,6 +33,11 @@ const routes: Routes = [{
             },
           ],
         },
+        {
+          path: 'custom',
+          loadChildren: () => import('./dashboards/custom-dashboards/custom-dashboards.entrypoint')
+            .then(m => m.routes),
+        },
       ],
     },
     {
@@ -65,11 +70,11 @@ const routes: Routes = [{
       loadChildren: () => import('./sensor-device-datas/sensor-device-datas.entrypoint')
         .then(m => m.routes),
     },
-    {
-      path: 'live-data',
-      loadChildren: () => import('./live-charts/live-charts.entrypoint')
-        .then(m => m.routes),
-    },
+    // {
+    //   path: 'live-data',
+    //   loadChildren: () => import('./live-charts/live-charts.entrypoint')
+    //     .then(m => m.routes),
+    // },
     {
       path: 'history-data',
       loadChildren: () => import('./history-charts/history-charts.entrypoint')

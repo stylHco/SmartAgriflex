@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {MenuItem} from "primeng/api";
 import {IsActiveMatchOptions} from "@angular/router";
+import {DashboardSensorTypeEnum} from "../../@core/app-api";
 
 const fallbackRouterMatchOptions: IsActiveMatchOptions = {
   // Most of our content is actually at sub-path, e.g.
@@ -27,12 +28,13 @@ export class MainSegmentMenuComponent {
       label: 'Home',
       items: [
         {label: 'Dashboard', icon: 'pi pi-fw pi-chart-bar', routerLink: '/app/dashboards/configurable'},
+        {label: 'Temperature', icon: 'pi pi-fw pi-sync', routerLink:`/app/dashboards/custom${encodeURIComponent("?")}sensorType${encodeURIComponent("=")}${encodeURIComponent(DashboardSensorTypeEnum.Temperature)}`},
       ],
     },
     {
       label: 'Data Visualization',
       items: [
-        {label: 'Live Data', icon: 'pi pi-fw pi-sync', routerLink: '/app/live-data'},
+        // {label: 'Live Data', icon: 'pi pi-fw pi-sync', routerLink: '/app/live-data'},
         {label: 'History', icon: 'pi pi-fw pi-chart-line', routerLink: '/app/history-data'},
         {label: 'Locations', icon: 'pi pi-fw pi-map-marker', routerLink: '/app/sensors'},
       ],

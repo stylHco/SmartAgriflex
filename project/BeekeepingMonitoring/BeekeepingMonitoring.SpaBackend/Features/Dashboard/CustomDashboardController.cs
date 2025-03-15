@@ -82,7 +82,7 @@ public partial class CustomDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<FullDetailsModel>>> GetLiveDataForSensor(
-        DashboardSensorTypeEnum sensorTypeEnum, string deviceIdStr)
+        DashboardSensorTypeEnum sensorTypeEnum, string deviceIdStr = "all")
     {
         string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
@@ -101,56 +101,114 @@ public partial class CustomDashboardController : ControllerBase
             .ThenInclude(sd => sd.Device)
             .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id);
 
+        bool includeAllDevices = false;
         int[] deviceIdArray = null;
 
-        // Parse and validate device IDs
-        deviceIdArray = deviceIdStr.Split(',')
-            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
-            .Where(id => id.HasValue)
-            .Select(id => id.Value)
-            .ToArray();
+        // Parse device IDs from input
+        if (!string.IsNullOrWhiteSpace(deviceIdStr))
+        {
+            var deviceIds = deviceIdStr.Split(',')
+                .Select(id => id.Trim().ToLower())
+                .ToArray();
 
+            includeAllDevices = deviceIds.Contains("all");
+            deviceIdArray = deviceIds
+                .Where(id => id != "all") // Exclude "all" from device ID array
+                .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToArray();
+        }
+
+        // Get valid device IDs from the database
         var validDeviceIds = await _dbContext.Devices
             .Where(d => deviceIdArray.Contains(d.Id))
             .Select(d => d.Id)
             .ToListAsync();
 
-        if (validDeviceIds.Count != deviceIdArray.Length)
+        if (deviceIdArray != null && validDeviceIds.Count != deviceIdArray.Length)
         {
-            return BadRequest("There is a non valid device ID");
+            return BadRequest("There is a non-valid device ID.");
         }
 
-        query = query.Where(sd => validDeviceIds.Contains(sd.SensorDevice.Device.Id));
-
-        // Group data using device then  top 10 per device
-        var groupedSensorData = query
+        var deviceSensorData = query
+            .Where(sd => validDeviceIds.Contains(sd.SensorDevice.Device.Id))
             .OrderByDescending(sd => sd.RecordDate)
             .AsEnumerable()
             .GroupBy(sd => sd.SensorDevice.Device.Id)
-            .SelectMany(g => g.Take(10))
+            .SelectMany(g => g.Take(10)) // Get latest 10 per device
             .ToList();
 
-        if (!groupedSensorData.Any())
+        // If no data found
+        if (!deviceSensorData.Any() && !includeAllDevices)
         {
-            return BadRequest("There are no data for that sensor.");
+            return BadRequest("There is no data for the selected sensor and devices");
         }
 
-        var result = groupedSensorData.Select(sd => new FullDetailsModel
+        List<FullDetailsModel> result = new List<FullDetailsModel>();
+
+        if (deviceSensorData.Any())
         {
-            Id = sd.Id,
-            SensorDevice = sd.SensorDevice,
-            Value = sd.Value,
-            RecordDate = sd.RecordDate
-        }).ToList();
+            result = deviceSensorData.Select(sd => new FullDetailsModel
+            {
+                Id = sd.Id,
+                SensorDevice = sd.SensorDevice,
+                Value = sd.Value,
+                RecordDate = sd.RecordDate
+            }).ToList();
+        }
+
+        if (includeAllDevices)
+        {
+            deviceSensorData = query
+                .OrderByDescending(sd => sd.RecordDate)
+                .AsEnumerable()
+                .GroupBy(sd => sd.SensorDevice.Device.Id)
+                .SelectMany(g => g.Take(10)) // Get latest 10 per device
+                .ToList();
+            var sensorData = deviceSensorData
+                .AsEnumerable()
+                .GroupBy(s => new
+                {
+                    Year = s.RecordDate.Year,
+                    Month = s.RecordDate.Month,
+                    Day = s.RecordDate.Day,
+                    Hour = s.RecordDate.Hour,
+                    SensorDevice = s.SensorDevice.Id
+                })
+                .Select(g => new
+                {
+                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, 0),
+                    AvgValue = g.Average(a => a.Value ?? 0),
+                })
+                .Take(10)
+                .ToList();
+
+
+            if (!sensorData.Any())
+            {
+                return BadRequest("There is no data for the selected sensor.");
+            }
+
+            var avgResult = sensorData.Select(sd => new FullDetailsModel()
+            {
+                Id = 0,
+                SensorDevice = null,
+                Value = sd.AvgValue,
+                RecordDate = sd.TimePeriod,
+            }).ToList();
+
+            result.AddRange(avgResult);
+        }
 
         return Ok(result);
     }
 
-    [JsonSchema(Name = "SensorsDataFullDetailsModel")]
+    [JsonSchema(Name = "CustomDashboardDataFullDetailsModel")]
     public class FullDetailsModel
     {
         public int Id { get; set; }
-        public SensorDevice SensorDevice { get; set; } = null!;
+        public SensorDevice? SensorDevice { get; set; }
         public decimal? Value { get; set; }
         public LocalDateTime RecordDate { get; set; }
     }
@@ -166,7 +224,7 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("get-live-gauge/{sensorTypeEnum}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<FullDetailsModel>>> GetLiveGauge(DashboardSensorTypeEnum sensorTypeEnum)
+    public async Task<ActionResult<float>> GetLiveGauge(DashboardSensorTypeEnum sensorTypeEnum)
     {
         string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
@@ -179,25 +237,23 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("Sensor is invalid.");
         }
 
+        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(1));
+
         var latestData = await _dbContext.SensorDeviceDatas
-            .OrderByDescending(sd => sd.RecordDate)
-            .FirstOrDefaultAsync();
+            .Include(sd => sd.SensorDevice)
+            .ThenInclude(sd => sd.Sensor)
+            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id
+                         && sd.Value != null
+                         && sd.RecordDate > now
+            )
+            .AverageAsync(sd => sd.Value);
+
 
         if (latestData == null)
         {
-            return BadRequest("No data available.");
+            return BadRequest("Data is too old or not available."+now);
         }
 
-        var now = LocalDateTime.FromDateTime(DateTime.Now);
-        ;
-
-        var totalDuration = now - latestData.RecordDate;
-
-        // check that the time difference is within one hour.
-        if (totalDuration.Hours > 1)
-        {
-            return BadRequest("Data is too old or not available.");
-        }
 
         return Ok(latestData);
     }
@@ -213,7 +269,7 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("get-data-for-sensor/{sensorTypeEnum}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<SensorDataFullDetailsModel>>> GetDataForSensor(
+    public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetDataForSensor(
         DashboardSensorTypeEnum sensorTypeEnum,
         DashboardIntervalTypeEnum intervalTypeEnum,
         LocalDate startDate,
@@ -289,7 +345,7 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("There is no data for the selected sensor.");
         }
 
-        var result = sensorData.Select(sd => new SensorDataFullDetailsModel()
+        var result = sensorData.Select(sd => new SensorDataFullDetailsModelWithRules()
         {
             Sensor = selectedSensor,
             Value = sd.AvgValue,
@@ -314,7 +370,7 @@ public partial class CustomDashboardController : ControllerBase
         return matchedRule?.ProgramDirective ?? "No Rules";
     }
 
-    public class SensorDataFullDetailsModel
+    public class SensorDataFullDetailsModelWithRules
     {
         public Sensor? Sensor { get; set; }
         public decimal? Value { get; set; }
@@ -333,7 +389,7 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("get-ytd-comparison-for-sensor/{sensorTypeEnum}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<SensorDataFullDetailsModel>>> GetYtdComparisonForSensor(
+    public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetYtdComparisonForSensor(
         DashboardSensorTypeEnum sensorTypeEnum, int year1, int year2)
     {
         string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
@@ -377,7 +433,7 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("There is no data for the selected sensor.");
         }
 
-        var result = sensorData.Select(sd => new SensorDataFullDetailsModel()
+        var result = sensorData.Select(sd => new SensorDataFullDetailsModelWithRules()
         {
             Sensor = selectedSensor,
             Value = sd.AvgValue,
@@ -507,10 +563,10 @@ public partial class CustomDashboardController : ControllerBase
 
         var devicesWithSensors = await _dbContext.SensorDevices
             .Where(sd => validSensorIds.Contains(sd.SensorId))
-            .GroupBy(sd => sd.DeviceId) 
+            .GroupBy(sd => sd.DeviceId)
             .Where(g => g.Select(sd => sd.SensorId).Distinct().Count() ==
-                        validSensorIds.Count) 
-            .Select(g => g.Key) 
+                        validSensorIds.Count)
+            .Select(g => g.Key)
             .ToListAsync();
 
         var result = await _dbContext.Devices
@@ -559,9 +615,9 @@ public partial class CustomDashboardController : ControllerBase
 
         var sensorsWithDevices = await _dbContext.SensorDevices
             .Where(sd => validDeviceIds.Contains(sd.DeviceId))
-            .GroupBy(sd => sd.SensorId) 
+            .GroupBy(sd => sd.SensorId)
             .Where(g => g.Select(sd => sd.DeviceId).Distinct().Count() ==
-                        validDeviceIds.Count) 
+                        validDeviceIds.Count)
             .Select(g => g.Key) // Select the DeviceId
             .ToListAsync();
 
@@ -569,9 +625,9 @@ public partial class CustomDashboardController : ControllerBase
             .Where(d => sensorsWithDevices.Contains(d.Id))
             .Select(d => new SensorReferenceModel
             {
-                Id = d.Id,
+                Id = d.Id, 
                 Name = d.Name,
-                Description = d.Description
+                Description = d.Description    
             })
             .ToListAsync();
 
@@ -579,6 +635,4 @@ public partial class CustomDashboardController : ControllerBase
     }
 
     #endregion
-
-
 }

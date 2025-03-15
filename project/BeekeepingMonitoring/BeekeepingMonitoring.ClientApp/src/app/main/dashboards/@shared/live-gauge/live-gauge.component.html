@@ -1,0 +1,14 @@
+<p-card header="Live Gauge">
+  <div *ngIf="isLoading">
+    <i class="pi pi-spin pi-spinner-dotted"></i>
+  </div>
+
+  <div *ngIf="error">
+    <p>Error: {{ error }}</p>
+    <button (click)="retry()">Retry</button>
+  </div>
+
+  <div *ngIf="!isLoading && !error">
+    <p>Temperature: {{ liveMeasurement }}</p>
+  </div>
+</p-card>

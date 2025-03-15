@@ -1,0 +1,38 @@
+<ng-container [appLoadableAutoManage]="dataLoadable"/>
+<section>
+  <div class="selection">
+    <h2 class="mb-2">Please select one of the Available or Available Devices</h2>
+<!--    <form class="p-fluid"-->
+<!--          [formGroup]="form" (ngSubmit)="submitForm()"-->
+<!--          lossMonitor [lossRouteFilter]="activatedRoute">-->
+<!--        <div class="field">-->
+<!--          <label>-->
+<!--            Device-->
+<!--            <app-required-field-indicator></app-required-field-indicator>-->
+<!--          </label>-->
+
+<!--          <p-dropdown [inputId]="'device'" formControlName="device"-->
+<!--                      [options]="(availableDevicesOptions$ | async) ?? []"-->
+<!--                      optionValue="entry" optionLabel="label"-->
+<!--                      appPlaceholder appFilterPlaceholder-->
+<!--                      [filter]="true" [autoDisplayFirst]="true"/>-->
+<!--          <app-form-control-errors controlName="device"></app-form-control-errors>-->
+<!--        </div>-->
+<!--      <div>-->
+<!--        <button type="submit" [disabled]="!form.valid"-->
+<!--                pButton class="p-button-success not-fluid">-->
+<!--          Select-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </form>-->
+  </div>
+</section>
+
+@if (availableSensorsFormResult && availableDevicesFormResult) {
+  <section class="my-8" *ngIf="dataIsLoaded">
+    <p-card
+      [header]='availableDevicesFormResult.name + " -- " + availableSensorsFormResult.name'>
+      <app-live-line-chart [jsonData]="transformedData"></app-live-line-chart>
+    </p-card>
+  </section>
+}

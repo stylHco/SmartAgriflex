@@ -2,7 +2,7 @@ import {
   SensorDateStatistics,
   SensorsDataFullDetailsModel,
   SensorDeviceDatasListModel,
-  SensorsDataStatistics, SensorDeviceDataDetailsModel
+  SensorsDataStatistics, SensorDeviceDataDetailsModel, CustomDashboardDataFullDetailsModel
 } from "../../@core/app-api";
 
 export enum EChartAvailableData {
@@ -19,21 +19,21 @@ export interface TransformedData {
   data: { date: Date; value: number }[];
 }
 
-export function transformData(inputData: SensorDeviceDataDetailsModel[]): TransformedData[] {
+export function transformData(inputData: CustomDashboardDataFullDetailsModel[]): TransformedData[] {
   const sensorDataMap: {
     [sensorId: number]: { deviceName: string; sensorName: string; data: { date: Date; value: number }[] }
   } = {};
 
   inputData.forEach(record => {
-    const deviceName = record.sensorDevice.device.name;
-    const sensorName = record.sensorDevice.sensor.name;
+    const deviceName = record.sensorDevice!.device.name;
+    const sensorName = record.sensorDevice!.sensor.name;
     const date = new Date(record.recordDate.toString());
 
-    if (!sensorDataMap[record.sensorDevice.id]) {
-      sensorDataMap[record.sensorDevice.id] = {deviceName, sensorName, data: []};
+    if (!sensorDataMap[record.sensorDevice!.id]) {
+      sensorDataMap[record.sensorDevice!.id] = {deviceName, sensorName, data: []};
     }
 
-    sensorDataMap[record.sensorDevice.id].data.push({date, value: record.value!});
+    sensorDataMap[record.sensorDevice!.id].data.push({date, value: record.value!});
   });
 
   return Object.values(sensorDataMap);
@@ -95,13 +95,13 @@ export function transformDataForSpecificSensors(inputData: { [sensorId: string]:
   return result;
 }
 
-export function transformData2(inputData: SensorsDataFullDetailsModel[]): TransformedData[] {
+export function transformData2(inputData: CustomDashboardDataFullDetailsModel[]): TransformedData[] {
   if (inputData.length === 0) {
     return [];
   }
 
-  const deviceName = inputData[0].sensorDevice.device.name ?? 'Unknown Device';
-  const sensorName = inputData[0].sensorDevice.sensor.name ?? 'Unknown Sensor';
+  const deviceName = inputData[0].sensorDevice ? inputData[0].sensorDevice!.device.name ?? 'Unknown Device' : 'Average';
+  const sensorName = inputData[0].sensorDevice ? inputData[0].sensorDevice!.sensor.name ?? 'Unknown Sensor' : 'Average';
 
   const valuesData: { date: Date; value: number }[] = [];
 

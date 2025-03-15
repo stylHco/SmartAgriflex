@@ -101,7 +101,6 @@ export class ViewLiveChartsComponent implements OnInit {
 
   ngOnInit() {
     const routeData = this.activatedRoute.snapshot.data;
-    // this.sensorsFullData = (routeData['allSensorData'] as ApiResult<SensorsDataListModel[]>).value!;
     this.sensorInfo = (routeData['sensorInfo'] as ApiResult<SensorsListModel[]>).value!;
     this.availableSensors = (routeData['availableSensors'] as ApiResult<SensorReferenceModel[]>).value!;
     this.availableSensors.unshift(new SensorReferenceModel({id: -1, name: 'Select All', description: ''}));
@@ -121,17 +120,12 @@ export class ViewLiveChartsComponent implements OnInit {
       .subscribe((params: Params) => {
         let sensorId: string = params['sensorId'];
         let deviceId: string = params['deviceId'];
-
-        // let sensorId: number = Number(sensorIdStr);
-        // let deviceId: number = Number(deviceIdStr);
-
         if (!isNaN(Number(sensorId))) {
           this.availableSensorsFormResult = this.availableSensors.find(as => as.id === Number(sensorId))!;
         }
         if (!isNaN(Number(deviceId))) {
           this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(deviceId))!;
         }
-
         // Start polling
         this.startPolling(sensorId!.toString(), deviceId!.toString());
 
