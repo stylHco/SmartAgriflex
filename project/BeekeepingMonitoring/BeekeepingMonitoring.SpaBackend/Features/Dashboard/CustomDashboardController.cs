@@ -535,30 +535,61 @@ public partial class CustomDashboardController : ControllerBase
 // =====================================================================================================================
 // =====================================================================================================================
 // =====================================================================================================================
-// Filter devices based on sensors 
+// Filter devices based on sensors id or based on sensors name from the enum
 
     #region filterDevices
 
-    [HttpGet("filter-devices/{sensorIdStr?}")]
+    [HttpGet("filter-devices")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<DeviceReferenceModel>>> FilterDevices(
-        string sensorIdStr)
+        [FromQuery] string? sensorIdStr = null, 
+        [FromQuery] DashboardSensorTypeEnum? sensorTypeEnum = null)
     {
-        int[] sensorIdArray = sensorIdStr.Split(',')
-            .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
-            .Where(id => id.HasValue)
-            .Select(id => id!.Value)
-            .ToArray();
 
-        var validSensorIds = await _dbContext.Sensors
-            .Where(s => sensorIdArray.Contains(s.Id))
-            .Select(s => s.Id)
-            .ToListAsync();
-
-        if (validSensorIds.Count != sensorIdArray.Length)
+        if (sensorIdStr == null && sensorTypeEnum == null)
         {
-            return BadRequest("There are invalid sensor Ids");
+            return BadRequest("Must provide a Sensor");
+        }
+        
+        if (sensorIdStr != null && sensorTypeEnum != null)
+        {
+            return BadRequest("Only one way to provide a Sensor is supported");
+        }
+
+        int[] sensorIdArray = null;
+        List<int> validSensorIds = new List<int>();
+        
+        if (sensorIdStr != null && sensorTypeEnum == null)
+        {
+            sensorIdArray = sensorIdStr.Split(',')
+                .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .ToArray();
+
+            validSensorIds = await _dbContext.Sensors
+                .Where(s => sensorIdArray.Contains(s.Id))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            if (validSensorIds.Count != sensorIdArray.Length)
+            {
+                return BadRequest("There are invalid sensor Ids");
+            }
+        }
+        else if (sensorIdStr == null && sensorTypeEnum != null)
+        {
+            string selectedSensorStr = getSensorTypeName( sensorTypeEnum?? DashboardSensorTypeEnum.Temperature);
+            validSensorIds = await _dbContext.Sensors
+                .Where(s => s.Name == selectedSensorStr)
+                .Select(s=> s.Id)
+                .ToListAsync();
+
+            if (!validSensorIds.Any())
+            {
+                return BadRequest("Sensor is invalid.");
+            }
         }
 
         var devicesWithSensors = await _dbContext.SensorDevices

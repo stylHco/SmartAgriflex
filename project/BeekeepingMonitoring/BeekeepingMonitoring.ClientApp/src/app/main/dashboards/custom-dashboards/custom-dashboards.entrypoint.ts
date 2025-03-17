@@ -3,7 +3,6 @@ import {CustomDashboardComponent} from "./custom-dashboard/custom-dashboard.comp
 import {createTranslocoLoader} from "../../../@transloco/transloco.helpers";
 import {TRANSLOCO_SCOPE, TranslocoScope} from "@ngneat/transloco";
 
-
 const translocoLoader = createTranslocoLoader(
   // @ts-ignore
   () => import(/* webpackMode: "eager" */ './i18n-custom-dashboards/en.json'),
@@ -18,4 +17,9 @@ export const routes: Routes = [{
       useValue: <TranslocoScope>{scope: 'customDashboards', loader: translocoLoader},
     },
   ],
-}];
+  },
+  {
+    path: ':sensorType',
+    component: CustomDashboardComponent,
+  },
+];

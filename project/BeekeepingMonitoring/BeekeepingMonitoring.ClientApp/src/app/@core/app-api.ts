@@ -3064,11 +3064,12 @@ export class CustomDashboardClient {
         return _observableOf(null as any);
     }
 
-    filterDevices(sensorIdStr: string): Observable<DeviceReferenceModel[]> {
-        let url_ = this.baseUrl + "/_api/custom-dashboards/filter-devices/{sensorIdStr}";
-        if (sensorIdStr === undefined || sensorIdStr === null)
-            throw new Error("The parameter 'sensorIdStr' must be defined.");
-        url_ = url_.replace("{sensorIdStr}", encodeURIComponent("" + sensorIdStr));
+    filterDevices(sensorIdStr: string | null | undefined, sensorTypeEnum: DashboardSensorTypeEnum | null | undefined): Observable<DeviceReferenceModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/filter-devices?";
+        if (sensorIdStr !== undefined && sensorIdStr !== null)
+            url_ += "sensorIdStr=" + encodeURIComponent("" + sensorIdStr) + "&";
+        if (sensorTypeEnum !== undefined && sensorTypeEnum !== null)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_ : any = {

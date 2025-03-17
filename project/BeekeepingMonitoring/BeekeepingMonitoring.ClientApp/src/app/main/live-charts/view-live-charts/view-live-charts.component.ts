@@ -223,6 +223,7 @@ export class ViewLiveChartsComponent implements OnInit {
           switchMap(data => {
             this.specificSensorData = data;
             this.dataIsLoaded = true;
+            console.log(transformData2(this.specificSensorData))
             return this.transformedData = transformData2(this.specificSensorData);
           })
         )

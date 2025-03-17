@@ -1,5 +1,8 @@
-
-<app-live-data-for-sensor></app-live-data-for-sensor>
-
-
-<app-live-gauge></app-live-gauge>
+<div class="grid">
+  <div class="col-12 md:col-9">
+    <app-live-data-for-sensor [sensorType]="sensorType"></app-live-data-for-sensor>
+  </div>
+  <div class="col-12 md:col-3">
+    <app-live-gauge [sensorType]="sensorType"></app-live-gauge>
+  </div>
+</div>

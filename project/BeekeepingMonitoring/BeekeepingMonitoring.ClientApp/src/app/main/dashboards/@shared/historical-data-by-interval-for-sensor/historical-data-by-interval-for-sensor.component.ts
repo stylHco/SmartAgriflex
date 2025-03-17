@@ -32,6 +32,7 @@ import {
 import {DashboardSensorMeasurementType} from "../dashboard-sensor-measurement-type";
 import {ApiResult} from "../../../../@shared/utils/api-result";
 import {catchError} from "rxjs/operators";
+import {IntervalType} from "../interval-type";
 
 interface SensorSelectionForm {
   device: FormControl<DeviceReferenceModel | null>;
@@ -60,10 +61,12 @@ interface SensorSelectionForm {
   styleUrl: './live-data-for-sensor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LiveDataForSensorComponent implements OnInit, OnDestroy {
+export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDestroy {
 
   @Input()
   sensorType!: DashboardSensorTypeEnum;
+  @Input()
+  interval!: IntervalType;
 
   isLoading = false;
   hasError = false;
