@@ -78,7 +78,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region liveDataForSensor
 
-    [HttpGet("live-data-for-sensor/{sensorTypeEnum}")]
+    [HttpGet("live-data-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<FullDetailsModel>>> GetLiveDataForSensor(
@@ -221,7 +221,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region LiveGauge
 
-    [HttpGet("get-live-gauge/{sensorTypeEnum}")]
+    [HttpGet("get-live-gauge")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<float>> GetLiveGauge(DashboardSensorTypeEnum sensorTypeEnum)
@@ -251,7 +251,7 @@ public partial class CustomDashboardController : ControllerBase
 
         if (latestData == null)
         {
-            return BadRequest("Data is too old or not available."+now);
+            return BadRequest("Data is too old or not available.");
         }
 
 
@@ -266,7 +266,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region GetDataForSensor
 
-    [HttpGet("get-data-for-sensor/{sensorTypeEnum}")]
+    [HttpGet("get-data-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetDataForSensor(
@@ -386,7 +386,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region GetYTDComparisonForSensor
 
-    [HttpGet("get-ytd-comparison-for-sensor/{sensorTypeEnum}")]
+    [HttpGet("get-ytd-comparison-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetYtdComparisonForSensor(
@@ -453,7 +453,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region liveData
 
-    [HttpGet("live-data/{sensorIdStr?}/{deviceIdStr?}")]
+    [HttpGet("live-data")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<FullDetailsModel>>> GetLiveData(
@@ -622,7 +622,7 @@ public partial class CustomDashboardController : ControllerBase
 
     #region filterSensors
 
-    [HttpGet("filter-sensors/{deviceIdStr?}")]
+    [HttpGet("filter-sensors")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorReferenceModel>>> FilterSensor(
@@ -665,5 +665,36 @@ public partial class CustomDashboardController : ControllerBase
         return Ok(result);
     }
 
+    #endregion
+    
+// =====================================================================================================================
+// =====================================================================================================================
+// =====================================================================================================================
+
+    #region getCustomRulesForSensor
+
+    [HttpGet("custom-rules-for-sensor")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<SensorReferenceModel>>> GetCustomRulesForSensor(
+        DashboardSensorTypeEnum sensorType)
+    {
+        string selectedSensorStr = getSensorTypeName(sensorType);
+        var selectedSensor = await _dbContext.Sensors
+            .Where(s => s.Name == selectedSensorStr)
+            .SingleOrDefaultAsync();
+
+        if (selectedSensor == null)
+        {
+            return BadRequest("Sensor is invalid.");
+        }
+
+        var customRules = await _dbContext.CustomRules
+            .Where(cl => cl.Sensor == selectedSensor)
+            .ToListAsync();
+
+        return customRules.Any() ? Ok(customRules) : BadRequest("There are no Custom Rules for this sensor");
+    }
+    
     #endregion
 }

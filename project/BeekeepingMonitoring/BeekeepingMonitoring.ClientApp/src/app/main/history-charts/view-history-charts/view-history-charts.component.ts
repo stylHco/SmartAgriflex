@@ -11,9 +11,9 @@ import {
   transformData,
   transformDataForSpecificSensors,
   TransformedData
-} from "../../charts/transformation-of-data";
+} from "../../@shared/charts/pipes/transformation-time-line-chart";
 import {CommonModule} from "@angular/common";
-import {LineChartComponent} from "../../charts/line-chart.component";
+import {LineChartComponent} from "../../@shared/charts/components/line-chart.component";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
 import {Observable, of} from "rxjs";

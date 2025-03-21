@@ -1,9 +1,6 @@
 import {
-  SensorDateStatistics,
-  SensorsDataFullDetailsModel,
-  SensorDeviceDatasListModel,
-  SensorsDataStatistics, SensorDeviceDataDetailsModel, CustomDashboardDataFullDetailsModel
-} from "../../@core/app-api";
+  SensorDateStatistics, CustomDashboardDataFullDetailsModel
+} from "../../../../@core/app-api";
 
 export enum EChartAvailableData {
   value = "Value",

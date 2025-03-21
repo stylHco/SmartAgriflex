@@ -4,7 +4,7 @@
   </div>
 
   <div class="errorMessage" *ngIf="hasError()">
-    <p>{{ errorMessage }}</p>
+    <p>Error Loading The data or data too old. Please try again!</p>
     <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
   </div>
 

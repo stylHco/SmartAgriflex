@@ -60,7 +60,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
   isLoading = signal(false);
   hasError = signal(false);
-  errorMessage = signal <string | null> (null);
   liveMeasurement!: number;
   liveMeasurementType!: DashboardSensorMeasurementType;
   pollingSubscription: Subscription | null = null;
@@ -114,13 +113,11 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
     }
 
     this.hasError.set(false);
-    this.errorMessage.set(null);
 
     this.customDashboardClient.getLiveGauge(sensorType).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         this.hasError.set(true);
-        this.errorMessage = err?.message || 'Error fetching data. Please try again.';
         this.isLoading.set(false);
 
         this.stopPolling(); // Stop polling if an error occurs
@@ -130,7 +127,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
     ).subscribe(response => {
       this.liveMeasurement = response;
       this.hasError.set(false);
-      this.errorMessage.set(null);
       this.isLoading.set(false);
 
       this.cd.markForCheck(); // Ensure UI updates for new data
@@ -148,8 +144,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
         switchMap(() => this.customDashboardClient.getLiveGauge(sensorType).pipe(
           catchError(err => {
             this.hasError.set(true);
-            this.errorMessage = err?.message || 'Error fetching data. Please try again.';
-
             this.stopPolling(); // Stop polling on error
             this.cd.markForCheck(); // Manually update UI to reflect the error
             return EMPTY;
@@ -160,7 +154,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
       .subscribe(response => {
         this.liveMeasurement = response;
         this.hasError.set(false);
-        this.errorMessage.set(null);
         this.cd.markForCheck(); // Ensure UI updates with new live data
       });
   }

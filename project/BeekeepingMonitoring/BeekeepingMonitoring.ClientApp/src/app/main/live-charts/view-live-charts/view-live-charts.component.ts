@@ -10,9 +10,9 @@ import {ApiResult} from "../../../@shared/utils/api-result";
 import {
   transformData, transformData2,
   TransformedData
-} from "../../charts/transformation-of-data";
+} from "../../@shared/charts/pipes/transformation-time-line-chart";
 import {CommonModule} from "@angular/common";
-import {LineChartComponent} from "../../charts/line-chart.component";
+import {LineChartComponent} from "../../@shared/charts/components/line-chart.component";
 import {FormControl, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
 import {interval, Observable, Subscription, switchMap} from "rxjs";
@@ -27,7 +27,7 @@ import {ButtonModule} from "primeng/button";
 import {PanelModule} from "primeng/panel";
 import {CardModule} from "primeng/card";
 import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sensor-chart-legend.component";
-import {LiveLineChartComponent} from "../../charts/live-line-chart.component";
+import {LiveLineChartComponent} from "../../@shared/charts/components/live-line-chart.component";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
 import {Loadable} from "../../../@shared/loadables/loadable";
 import {LoadablesTemplateUtilsModule} from "../../../@shared/loadables/template-utils/loadables-template-utils.module";

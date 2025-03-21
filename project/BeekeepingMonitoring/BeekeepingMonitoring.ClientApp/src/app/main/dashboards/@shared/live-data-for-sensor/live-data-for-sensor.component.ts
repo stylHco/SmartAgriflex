@@ -1,16 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  signal
+} from '@angular/core';
 import {
   CustomDashboardClient,
   CustomDashboardDataFullDetailsModel,
   DashboardSensorTypeEnum,
   DeviceReferenceModel, DevicesClient,
-  SensorReferenceModel
 } from "../../../../@core/app-api";
-import {transformData2, TransformedData} from "../../../charts/transformation-of-data";
+import {transformData2, TransformedData} from "../../../@shared/charts/pipes/transformation-time-line-chart";
 import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {EMPTY, interval, Observable, Subject, Subscription, switchMap, takeUntil} from "rxjs";
-import {SensorOption, SensorRepresentingService} from "../../../../@core/sensors/sensor-representing.utils";
 import {DeviceOption, DeviceRepresentingService} from "../../../../@core/devices/device-representing.utils";
 import {Loadable} from "../../../../@shared/loadables/loadable";
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -22,15 +29,13 @@ import {DropdownDefaultsModule} from "../../../../@shared/defaults/dropdown-defa
 import {DropdownModule} from "primeng/dropdown";
 import {FormControlErrorsModule} from "../../../../@shared/form-control-errors/form-control-errors.module";
 import {FormLossPreventionModule} from "../../../../@shared/form-loss-prevention/form-loss-prevention.module";
-import {LiveLineChartComponent} from "../../../charts/live-line-chart.component";
+import {LiveLineChartComponent} from "../../../@shared/charts/components/live-line-chart.component";
 import {
   RequiredFieldIndicatorModule
 } from "../../../../@shared/required-field-indicator/required-field-indicator.module";
 import {
   LoadablesTemplateUtilsModule
 } from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
-import {DashboardSensorMeasurementType} from "../dashboard-sensor-measurement-type";
-import {ApiResult} from "../../../../@shared/utils/api-result";
 import {catchError} from "rxjs/operators";
 
 interface SensorSelectionForm {
@@ -65,12 +70,12 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
   @Input()
   sensorType!: DashboardSensorTypeEnum;
 
-  isLoading = false;
-  hasError = false;
-  errorMessage: string | null = null;
+  isLoading = signal(false);
+  hasError = signal(false);
+
+
   pollingSubscription: Subscription | null = null;
   destroy$ = new Subject<void>();
-
 
   availableDevicesResults: DeviceReferenceModel[] = [];
   availableDevicesFormResult!: DeviceReferenceModel;
@@ -79,14 +84,10 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
   specificSensorData!: CustomDashboardDataFullDetailsModel[];
   transformedData!: TransformedData[];
-
-
   form!: FormGroup<SensorSelectionForm>;
-
   dataLoadable!: Loadable<TransformedData[]>;
 
-  dataIsLoaded = false;
-
+  deviceId!: string;
   constructor(
     protected readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
@@ -124,13 +125,12 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
           this.sensorType = sensor as DashboardSensorTypeEnum;
         }
 
-        let deviceId: string = params['liveDataDeviceId'];
-        if (!isNaN(Number(deviceId))) {
-          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(deviceId))!;
+        this.deviceId = params['liveDataDeviceId'];
+        if (!isNaN(Number(this.deviceId))) {
+          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(this.deviceId))!;
         }
         // Start polling
-        this.fetchData(this.sensorType, true, deviceId ? deviceId!.toString() : "all");
-
+        this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
 
       });
 
@@ -177,20 +177,18 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
   private fetchData(sensorType: DashboardSensorTypeEnum, isFirstLoad: boolean = false, deviceId: string | null) {
     if (isFirstLoad) {
-      this.isLoading = true;
+      this.isLoading.set(true);
       this.cd.markForCheck(); // Ensure UI updates for loading state
     }
 
-    this.hasError = false;
-    this.errorMessage = null;
+    this.hasError.set(false);
+
 
     this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
-        this.hasError = true;
-        this.errorMessage = err?.message || 'Error fetching data. Please try again.';
-        this.isLoading = false;
-
+        this.hasError.set(true);
+        this.isLoading.set(false);
         this.stopPolling(); // Stop polling if an error occurs
         this.cd.markForCheck(); // Manually trigger UI update for error state
         return EMPTY;
@@ -198,9 +196,8 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
     ).subscribe(response => {
       this.specificSensorData = response;
       this.transformedData = transformData2(this.specificSensorData);
-      this.hasError = false;
-      this.errorMessage = null;
-      this.isLoading = false;
+      this.hasError.set(false);
+      this.isLoading.set(false);
 
       this.cd.markForCheck(); // Ensure UI updates for new data
 
@@ -216,9 +213,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       switchMap(() =>
         this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
           catchError(err => {
-            this.hasError = true;
-            this.errorMessage = err?.message || 'Error fetching data. Please try again.';
-
+            this.hasError.set(true);
             this.stopPolling(); // Stop polling on error
             this.cd.markForCheck(); // Manually update UI to reflect the error
             return EMPTY;
@@ -229,8 +224,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       .subscribe(data => {
         this.specificSensorData = data;
         this.transformedData = transformData2(this.specificSensorData);
-        this.hasError = false;
-        this.errorMessage = null;
+        this.hasError.set(false);
         this.cd.markForCheck(); // Ensure UI updates with new live data
       });
   }
@@ -244,7 +238,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
   // the retry logic is only caled when the user presed retry after a badrequest.
   retry() {
-    if (!this.sensorType || !this.availableDevicesFormResult) return;
-    this.fetchData(this.sensorType, true, this.availableDevicesFormResult?.id.toString());
+    this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
   }
+
 }

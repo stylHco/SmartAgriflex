@@ -6,11 +6,10 @@ import {
   DeviceReferenceModel, DevicesClient,
   SensorReferenceModel
 } from "../../../../@core/app-api";
-import {transformData2, TransformedData} from "../../../charts/transformation-of-data";
+import {transformData2, TransformedData} from "../../../@shared/charts/pipes/transformation-time-line-chart";
 import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {EMPTY, interval, Observable, Subject, Subscription, switchMap, takeUntil} from "rxjs";
-import {SensorOption, SensorRepresentingService} from "../../../../@core/sensors/sensor-representing.utils";
 import {DeviceOption, DeviceRepresentingService} from "../../../../@core/devices/device-representing.utils";
 import {Loadable} from "../../../../@shared/loadables/loadable";
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -22,7 +21,7 @@ import {DropdownDefaultsModule} from "../../../../@shared/defaults/dropdown-defa
 import {DropdownModule} from "primeng/dropdown";
 import {FormControlErrorsModule} from "../../../../@shared/form-control-errors/form-control-errors.module";
 import {FormLossPreventionModule} from "../../../../@shared/form-loss-prevention/form-loss-prevention.module";
-import {LiveLineChartComponent} from "../../../charts/live-line-chart.component";
+import {LiveLineChartComponent} from "../../../@shared/charts/components/live-line-chart.component";
 import {
   RequiredFieldIndicatorModule
 } from "../../../../@shared/required-field-indicator/required-field-indicator.module";

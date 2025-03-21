@@ -29,16 +29,16 @@
 </section>
 
 
-<div class="loading" *ngIf="isLoading">
+<div class="loading" *ngIf="isLoading()">
   <i class="pi pi-spin pi-spinner-dotted"></i>
 </div>
 
-<div *ngIf="errorMessage">
-  <p>{{ errorMessage }}</p>
+<div class="error" *ngIf="hasError()">
+  <p>Error Loading The data. Please try again!</p>
   <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
 </div>
 
-<div *ngIf="!isLoading && !errorMessage">
+<div *ngIf="!isLoading() && !hasError()">
     <section class="my-8">
       <p-card
         header="header">

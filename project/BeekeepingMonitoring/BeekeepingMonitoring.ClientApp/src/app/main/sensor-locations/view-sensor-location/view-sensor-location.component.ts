@@ -5,7 +5,7 @@ import {
 } from "../../../@core/app-api";
 import {ApiResult} from "../../../@shared/utils/api-result";
 import {CommonModule} from "@angular/common";
-import {LineChartComponent} from "../../charts/line-chart.component";
+import {LineChartComponent} from "../../@shared/charts/components/line-chart.component";
 import {FormControl, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import { Observable, Subscription} from "rxjs";
 import {autoMarkForCheck} from "../../../@shared/utils/change-detection-helpers";
@@ -19,7 +19,7 @@ import {ButtonModule} from "primeng/button";
 import {PanelModule} from "primeng/panel";
 import {CardModule} from "primeng/card";
 import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sensor-chart-legend.component";
-import {LiveLineChartComponent} from "../../charts/live-line-chart.component";
+import {LiveLineChartComponent} from "../../@shared/charts/components/live-line-chart.component";
 import {RippleModule} from "primeng/ripple";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
 
