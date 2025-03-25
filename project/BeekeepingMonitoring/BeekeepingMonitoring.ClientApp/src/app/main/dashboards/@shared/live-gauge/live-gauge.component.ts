@@ -57,7 +57,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
   sensorTypeInside!: DashboardSensorTypeEnum;
 
-
   isLoading = signal(false);
   hasError = signal(false);
   liveMeasurement!: number;

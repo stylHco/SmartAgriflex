@@ -266,21 +266,19 @@ public partial class CustomDashboardController : ControllerBase
 
     #region GetDataForSensor
 
-    [HttpGet("get-data-for-sensor")]
+    [HttpPost("get-data-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetDataForSensor(
-        DashboardSensorTypeEnum sensorTypeEnum,
-        DashboardIntervalTypeEnum intervalTypeEnum,
-        LocalDate startDate,
-        LocalDate endDate)
+        GetDataForSensorInputModel inputModel
+        )
     {
-        if (startDate > endDate)
+        if (inputModel.EndDate > inputModel.EndDate)
         {
             return BadRequest("Start time cannot be after end time.");
         }
 
-        string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
+        string selectedSensorStr = getSensorTypeName(inputModel.SensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -291,16 +289,18 @@ public partial class CustomDashboardController : ControllerBase
         }
 
         var timeZone = DateTimeZoneProviders.Tzdb["Asia/Nicosia"];
-        var startLocalDateTime = startDate.AtStartOfDayInZone(timeZone).LocalDateTime;
-        var endLocalDateTime = endDate.PlusDays(1).AtStartOfDayInZone(timeZone).LocalDateTime;
+        var startLocalDateTime = inputModel.StartDate.AtStartOfDayInZone(timeZone).LocalDateTime;
+        var endLocalDateTime = inputModel.EndDate.PlusDays(1).AtStartOfDayInZone(timeZone).LocalDateTime;
 
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
-            .Include(sd => sd.SensorDevice)
-            .ThenInclude(sd => sd.Sensor)
-            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id &&
-                         sd.RecordDate >= startLocalDateTime &&
-                         sd.RecordDate <= endLocalDateTime
-            );
+                .Include(sd => sd.SensorDevice)
+                .ThenInclude(sd => sd.Sensor)
+                .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id &&
+                             sd.RecordDate >= startLocalDateTime &&
+                             sd.RecordDate <= endLocalDateTime
+                )
+                .OrderBy(ob => ob.RecordDate)
+            ;
 
         var rules = await _dbContext.CustomRules
             .Where(r => r.SensorId == selectedSensor.Id)
@@ -312,18 +312,18 @@ public partial class CustomDashboardController : ControllerBase
             {
                 Year = s.RecordDate.Year,
                 Month = s.RecordDate.Month,
-                Week = intervalTypeEnum == DashboardIntervalTypeEnum.Weekly
+                Week = inputModel.IntervalTypeEnum == DashboardIntervalTypeEnum.Weekly
                     ? ISOWeek.GetWeekOfYear(s.RecordDate.ToDateTimeUnspecified())
                     : 0,
-                Day = (intervalTypeEnum == DashboardIntervalTypeEnum.Daily ||
-                       intervalTypeEnum == DashboardIntervalTypeEnum.Hourly)
+                Day = (inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Daily ||
+                       inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Hourly)
                     ? s.RecordDate.Day
                     : 1,
-                Hour = intervalTypeEnum == DashboardIntervalTypeEnum.Hourly ? s.RecordDate.Hour : 0
+                Hour = inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Hourly ? s.RecordDate.Hour : 0
             })
             .Select(g => new
             {
-                TimePeriod = intervalTypeEnum switch
+                TimePeriod = inputModel.IntervalTypeEnum  switch
                 {
                     DashboardIntervalTypeEnum.Hourly => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day,
                         g.Key.Hour, 0),
@@ -376,6 +376,15 @@ public partial class CustomDashboardController : ControllerBase
         public decimal? Value { get; set; }
         public LocalDateTime RecordDate { get; set; }
         public string Rule { get; set; }
+    }
+
+    [JsonSchema(Name = "GetDataForSensorInputModel")]
+    public class GetDataForSensorInputModel
+    {
+        public DashboardSensorTypeEnum SensorTypeEnum { get; set; }
+        public DashboardIntervalTypeEnum IntervalTypeEnum { get; set; }
+        public LocalDate StartDate { get; set; }
+        public LocalDate EndDate { get; set; }
     }
 
     #endregion
@@ -676,7 +685,7 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("custom-rules-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<SensorReferenceModel>>> GetCustomRulesForSensor(
+    public async Task<ActionResult<List<CustomRulesController.ListModel>>> GetCustomRulesForSensor(
         DashboardSensorTypeEnum sensorType)
     {
         string selectedSensorStr = getSensorTypeName(sensorType);

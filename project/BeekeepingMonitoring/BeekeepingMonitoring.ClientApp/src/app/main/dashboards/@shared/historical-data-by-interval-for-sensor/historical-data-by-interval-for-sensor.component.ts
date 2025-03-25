@@ -1,20 +1,35 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {
-  CustomDashboardClient,
-  CustomDashboardDataFullDetailsModel,
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  NgZone,
+  OnDestroy,
+  OnInit, Query,
+  signal
+} from '@angular/core';
+import {
+  CustomDashboardClient, DashboardIntervalTypeEnum,
   DashboardSensorTypeEnum,
-  DeviceReferenceModel, DevicesClient,
-  SensorReferenceModel
+  DeviceReferenceModel, DevicesClient, GetDataForSensorInputModel, SensorDataFullDetailsModelWithRules,
+
 } from "../../../../@core/app-api";
-import {transformData2, TransformedData} from "../../../@shared/charts/pipes/transformation-time-line-chart";
 import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {EMPTY, interval, Observable, Subject, Subscription, switchMap, takeUntil} from "rxjs";
-import {DeviceOption, DeviceRepresentingService} from "../../../../@core/devices/device-representing.utils";
-import {Loadable} from "../../../../@shared/loadables/loadable";
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn
+} from "@angular/forms";
+import {EMPTY, Subject, takeUntil} from "rxjs";
+import {DeviceRepresentingService} from "../../../../@core/devices/device-representing.utils";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {CommonValidators} from "../../../../@shared/utils/common-validators";
-import {AsyncPipe, NgIf} from "@angular/common";
+import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
 import {Button, ButtonDirective} from "primeng/button";
 import {CardModule} from "primeng/card";
 import {DropdownDefaultsModule} from "../../../../@shared/defaults/dropdown-defaults.module";
@@ -28,17 +43,22 @@ import {
 import {
   LoadablesTemplateUtilsModule
 } from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
-import {DashboardSensorMeasurementType} from "../dashboard-sensor-measurement-type";
-import {ApiResult} from "../../../../@shared/utils/api-result";
+import {localDateToNative, nativeToLocalDate} from "../../../../@shared/date-time/joda.helpers";
+import {CalendarModule} from "primeng/calendar";
+import {BarChartComponent} from "../../../@shared/charts/components/bar-chart.component";
+import {
+  BarChartInterface,
+  transformBarChartData
+} from "../../../@shared/charts/pipes/transform-bar-chart";
 import {catchError} from "rxjs/operators";
-import {IntervalType} from "../interval-type";
 
 interface SensorSelectionForm {
-  device: FormControl<DeviceReferenceModel | null>;
+  startDate: FormControl<Date | null>;
+  endDate: FormControl<Date | null>;
 }
 
 @Component({
-  selector: 'app-live-data-for-sensor',
+  selector: 'app-historical-data-by-interval-for-sensor',
   standalone: true,
   imports: [
     AsyncPipe,
@@ -54,199 +74,207 @@ interface SensorSelectionForm {
     ReactiveFormsModule,
     RequiredFieldIndicatorModule,
     LoadablesTemplateUtilsModule,
-    Button
+    Button,
+    CalendarModule,
+    NgStyle,
+    BarChartComponent,
   ],
-  templateUrl: './live-data-for-sensor.component.html',
-  styleUrl: './live-data-for-sensor.component.scss',
+  templateUrl: './historical-data-by-interval-for-sensor.component.html',
+  styleUrl: './historical-data-by-interval-for-sensor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDestroy {
 
   @Input()
   sensorType!: DashboardSensorTypeEnum;
-  @Input()
-  interval!: IntervalType;
 
-  isLoading = false;
-  hasError = false;
-  errorMessage: string | null = null;
-  pollingSubscription: Subscription | null = null;
+  @Input()
+  interval!: DashboardIntervalTypeEnum;
+
+  @Input()
+  widgetId!: string;
+
+  @Input()
+  title!: string;
+
+  isLoading = signal(true);
+  hasError = signal(false);
+
+  transformedDate!: BarChartInterface[];
+
+  inputModel!: GetDataForSensorInputModel;
+  form!: FormGroup<SensorSelectionForm>;
+  startDateResult!: any;
+  endDateResult!: any;
+
+
   destroy$ = new Subject<void>();
 
-
-  availableDevicesResults: DeviceReferenceModel[] = [];
-  availableDevicesFormResult!: DeviceReferenceModel;
-  availableDevices: DeviceReferenceModel[] = [];
-  availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
-
-  specificSensorData!: CustomDashboardDataFullDetailsModel[];
-  transformedData!: TransformedData[];
-
-
-  form!: FormGroup<SensorSelectionForm>;
-
-  dataLoadable!: Loadable<TransformedData[]>;
-
-  dataIsLoaded = false;
+  urlInitialized = false;
 
   constructor(
     protected readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private ngZone: NgZone,
     private cd: ChangeDetectorRef,
-    private deviceRepresentingService: DeviceRepresentingService,
-    private devicesClient: DevicesClient,
     private customDashboardClient: CustomDashboardClient
   ) {
   }
 
   ngOnInit() {
-
-    this.customDashboardClient.filterDevices(null, this.sensorType)
-      .pipe(
-        autoMarkForCheck(this.cd),
-      )
-      .subscribe(data =>{
-        this.availableDevices = data;
-        this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'All(Average)', nickname: ''}));
-        this.availableDevicesResults = this.availableDevices
-        this.availableDevicesOptions$ = this.deviceRepresentingService.getOptions(this.availableDevicesResults);
-      })
-
     this.form = this.buildCreateForm();
-
-    this.activatedRoute.params
-      .pipe(
-        autoMarkForCheck(this.cd),
-      )
-      .subscribe((params: Params) => {
-        const sensor: string = params['sensorType'];
-        // Convert sensor from string to Enum
-        if (sensor && Object.values(DashboardSensorTypeEnum).includes(sensor as DashboardSensorTypeEnum)) {
-          this.sensorType = sensor as DashboardSensorTypeEnum;
-        }
-
-        let deviceId: string = params['liveDataDeviceId'];
-        if (!isNaN(Number(deviceId))) {
-          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(deviceId))!;
-        }
-        // Start polling
-        this.fetchData(this.sensorType, true, deviceId ? deviceId!.toString() : "all");
+    if (!this.urlInitialized) {
+      this.setDefaultDatesAndUpdateUrl();
+    }
+    this.fetchData();
+  }
 
 
+  formatDate = (date: Date): string => {
+    return date.toISOString().split('T')[0]; // Extracts "YYYY-MM-DD"
+  };
+
+  setDefaultDatesAndUpdateUrl() {
+    this.urlInitialized = true;
+    const now = new Date();
+    this.endDateResult = now;
+
+    switch (this.interval) {
+
+      case DashboardIntervalTypeEnum.Hourly:
+        // get current day
+        this.startDateResult = new Date();
+        break;
+
+      case DashboardIntervalTypeEnum.Daily:
+        // get current week
+        const dailyStart = new Date(now);
+        dailyStart.setHours(0, 0, 0, 0);
+        this.startDateResult = dailyStart;
+        break;
+
+      case DashboardIntervalTypeEnum.Weekly:
+        // Get current month
+        this.startDateResult = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
+        break;
+
+      case DashboardIntervalTypeEnum.Monthly:
+        // get current year
+        this.startDateResult = new Date(Date.UTC(now.getFullYear(), 0, 1));
+        break;
+
+      case DashboardIntervalTypeEnum.Yearly:
+        // Get current year
+        this.startDateResult = new Date(Date.UTC(now.getFullYear(), 0, 1));
+        break;
+
+      default:
+        this.startDateResult = new Date();
+        this.endDateResult = new Date();
+        break;
+    }
+
+    this.updateUrlWithDates();
+  }
+
+  updateUrlWithDates() {
+    const allQueryParams = this.activatedRoute.snapshot.queryParams;
+
+// Check if query params already exist
+    const hasQueryParams = Object.keys(allQueryParams).some(key =>
+      key === `startDate_${this.widgetId}` || key === `endDate_${this.widgetId}`
+    );
+
+    if (!hasQueryParams) {
+      this.router.navigate([], {
+        queryParams: {
+          [`startDate_${this.widgetId}`]: this.formatDate(this.startDateResult),
+          [`endDate_${this.widgetId}`]: this.formatDate(this.endDateResult),
+        },
+        relativeTo: this.activatedRoute,
+        queryParamsHandling: 'merge',
+        replaceUrl: true, // Prevent adding new history entry
       });
-
+    }
   }
 
   submitForm() {
-    if (this.form.controls.device.value?.id !== undefined) {
-
-      let deviceId!: string;
-
-      if (this.form.controls.device.value.id != -1) {
-        deviceId = this.form.controls.device.value.id.toString();
-      } else {
-        deviceId = 'all'
-      }
-
-      this.ngZone.run(() => {
-        this.router.navigate([{liveDataDeviceId: deviceId}], {relativeTo: this.activatedRoute});
-      });
-    } else {
-      console.error("Sensor id or Device Id is undefined!!");
-    }
+    this.router.navigate([], {
+      queryParams: {
+        [`startDate_${this.widgetId}`]: nativeToLocalDate(this.form.controls.startDate.value),
+        [`endDate_${this.widgetId}`]: nativeToLocalDate(this.form.controls.endDate.value),
+      },
+      relativeTo: this.activatedRoute,
+      queryParamsHandling: 'merge',
+      replaceUrl: true, // Prevent adding new history entry
+    });
 
     this.form.reset();
-
   }
+
 
   private buildCreateForm(): FormGroup<SensorSelectionForm> {
     return new FormGroup({
-      device: new FormControl<DeviceReferenceModel | null>(null, {
-        validators: [
-          CommonValidators.required(),
-        ],
-      }),
-    });
+        startDate: new FormControl<Date | null>(null, {
+          validators: [
+            CommonValidators.required(),
+          ],
+        }),
+        endDate: new FormControl<Date | null>(null, {
+          validators: [
+            CommonValidators.required(),
+          ],
+        }),
+      },
+    );
   }
 
-
   ngOnDestroy(): void {
-    this.stopPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private fetchData(sensorType: DashboardSensorTypeEnum, isFirstLoad: boolean = false, deviceId: string | null) {
-    if (isFirstLoad) {
-      this.isLoading = true;
-      this.cd.markForCheck(); // Ensure UI updates for loading state
-    }
+  private fetchData() {
+    this.activatedRoute.queryParams
+      .pipe(
+        autoMarkForCheck(this.cd),
+      )
+      .subscribe((params) => {
+        this.hasError.set(false);
+        this.isLoading.set(true);
 
-    this.hasError = false;
-    this.errorMessage = null;
+        this.startDateResult =  (new Date(params[`startDate_${this.widgetId}`]));
+        this.endDateResult = (new Date(params[`endDate_${this.widgetId}`]));
 
-    this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
-      takeUntil(this.destroy$),
-      catchError(err => {
-        this.hasError = true;
-        this.errorMessage = err?.message || 'Error fetching data. Please try again.';
-        this.isLoading = false;
+        this.inputModel = new GetDataForSensorInputModel({
+          sensorTypeEnum: this.sensorType,
+          intervalTypeEnum: this.interval,
+          startDate: nativeToLocalDate(new Date(params[`startDate_${this.widgetId}`]))!,
+          endDate: nativeToLocalDate(new Date(params[`startDate_${this.widgetId}`]))!,
+        });
 
-        this.stopPolling(); // Stop polling if an error occurs
-        this.cd.markForCheck(); // Manually trigger UI update for error state
-        return EMPTY;
-      })
-    ).subscribe(response => {
-      this.specificSensorData = response;
-      this.transformedData = transformData2(this.specificSensorData);
-      this.hasError = false;
-      this.errorMessage = null;
-      this.isLoading = false;
-
-      this.cd.markForCheck(); // Ensure UI updates for new data
-
-      // Start polling every 1 minute after we ensures that we fetch the data successfully
-      this.startPolling(sensorType, deviceId);
-    });
-  }
-
-  private startPolling(sensorType: DashboardSensorTypeEnum, deviceId: string | null) {
-    this.stopPolling();
-
-    this.pollingSubscription = interval(60000).pipe(
-      switchMap(() =>
-        this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
+        this.customDashboardClient.getDataForSensor(this.inputModel).pipe(
+          takeUntil(this.destroy$),
           catchError(err => {
-            this.hasError = true;
-            this.errorMessage = err?.message || 'Error fetching data. Please try again.';
-
-            this.stopPolling(); // Stop polling on error
-            this.cd.markForCheck(); // Manually update UI to reflect the error
+            this.hasError.set(true);
+            this.isLoading.set(false);
+            this.cd.markForCheck(); // Manually trigger UI update for error state
             return EMPTY;
           })
-        )),
-      takeUntil(this.destroy$)
-    )
-      .subscribe(data => {
-        this.specificSensorData = data;
-        this.transformedData = transformData2(this.specificSensorData);
-        this.hasError = false;
-        this.errorMessage = null;
-        this.cd.markForCheck(); // Ensure UI updates with new live data
-      });
-  }
+        ).subscribe(response => {
+          this.transformedDate = transformBarChartData(response, this.interval);
+          console.log(this.transformedDate)
+          this.hasError.set(false);
+          this.isLoading.set(false);
 
-  private stopPolling() {
-    if (this.pollingSubscription) {
-      this.pollingSubscription.unsubscribe();
-      this.pollingSubscription = null;
-    }
+          this.cd.markForCheck(); // Ensure UI updates for new data
+        });
+      });
+
   }
 
   // the retry logic is only caled when the user presed retry after a badrequest.
   retry() {
-    if (!this.sensorType || !this.availableDevicesFormResult) return;
-    this.fetchData(this.sensorType, true, this.availableDevicesFormResult?.id.toString());
+    this.fetchData();
   }
+
 }

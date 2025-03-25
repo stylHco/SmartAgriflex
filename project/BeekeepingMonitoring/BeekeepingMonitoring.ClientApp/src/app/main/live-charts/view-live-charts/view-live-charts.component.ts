@@ -74,7 +74,6 @@ export class ViewLiveChartsComponent implements OnInit {
   availableDevices: DeviceReferenceModel[] = [];
   availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
 
-  sensorsFullData: SensorDeviceDatasListModel[] = [];
 
   specificSensorData!: SensorsDataFullDetailsModel[];
   transformedData!: TransformedData[];

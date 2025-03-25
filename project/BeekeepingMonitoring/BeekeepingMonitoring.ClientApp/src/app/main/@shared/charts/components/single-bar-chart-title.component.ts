@@ -8,23 +8,21 @@ import {TranslocoModule} from "@ngneat/transloco";
 import {ButtonModule} from "primeng/button";
 import {
   LoadablesTemplateUtilsModule
-} from "../../../../../@shared/loadables/template-utils/loadables-template-utils.module";
-import {LoadableDisplayMediumModule} from "../../../../../@shared/loadables/status-display/loadable-display-medium";
-import {CommonChartPresenterModule} from "../../../../../@shared/charts/common-chart-presenter";
-import {Loadable} from "../../../../../@shared/loadables/loadable";
+} from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
+import {LoadableDisplayMediumModule} from "../../../../@shared/loadables/status-display/loadable-display-medium";
+import {CommonChartPresenterModule} from "../../../../@shared/charts/common-chart-presenter";
+import {Loadable} from "../../../../@shared/loadables/loadable";
 import {
   CommonVizDataDescriptor,
   CommonVizDatasetType,
   DEFAULT_DATASET, DEFAULT_SERIES_VALUE
-} from "../../../../../@shared/charts/common-viz-data";
-import {Widgets} from "../../../../../@core/app-api";
-import {createConfigureChartFn} from "../../../../../@shared/charts/factories/shared";
-import {configureBarChart} from "../../../../../@shared/charts/factories/bar.chart";
-import {TransformDoubleLineChartPipe} from "../pipes/transform-double-line-chart.pipe";
-
+} from "../../../../@shared/charts/common-viz-data";
+import {createConfigureChartFn} from "../../../../@shared/charts/factories/shared";
+import {configureBarChart} from "../../../../@shared/charts/factories/bar.chart";
 import * as am5 from "@amcharts/amcharts5";
 import {TransformSingleBarChartPipe} from "../pipes/transform-single-bar-chart.pipe";
 import {CardModule} from "primeng/card";
+import {DashboardIntervalTypeEnum, SensorDataFullDetailsModelWithRules} from "../../../../@core/app-api";
 
 
 @Component({
@@ -37,25 +35,25 @@ import {CardModule} from "primeng/card";
     LoadablesTemplateUtilsModule,
     LoadableDisplayMediumModule,
     CommonChartPresenterModule,
-    TransformDoubleLineChartPipe,
     TransformSingleBarChartPipe,
     CardModule,
   ],
   template: `
     <ng-container [appLoadableAutoManage]="itemLoadable"/>
+    <app-loadable-d-medium [loadable]="itemLoadable"/>
     <ng-container *loadableWhenLoaded="itemLoadable as items">
-      @for (item of items; track item) {
-          <p-card>
-            <app-loadable-d-medium [loadable]="itemLoadable"/>
-            @if (item.chartData) {
-              <app-common-chart-presenter
-                style="height: 300px"
-                [data]="item!.chartData! | TransformSingleBarChartPipe"
-                [dataDescriptor]="dataDescriptorSingleBarchart"
-                [configureFn]="configureLineFn"></app-common-chart-presenter>
-            }
-          </p-card>
-      }
+      <p-card>
+        @if (items) {
+          <app-common-chart-presenter
+            style="height: 300px"
+            [data]="items | TransformSingleBarChartPipe: intervalType!"
+            [dataDescriptor]="dataDescriptorSingleBarchart"
+            [configureFn]="configureLineFn">
+
+          </app-common-chart-presenter>
+        }
+      </p-card>
+
     </ng-container>
   `,
   styles: `
@@ -90,11 +88,13 @@ import {CardModule} from "primeng/card";
 export class SingleBarChartTitleComponent implements OnInit{
 
   @Input()
-  itemLoadable!: Loadable<Widgets[]>;
+  itemLoadable!: Loadable<SensorDataFullDetailsModelWithRules[]>;
   @Input()
   displayNames?: string[];
   @Input()
   title?: string;
+  @Input()
+  intervalType?: DashboardIntervalTypeEnum;
 
   configureLineFn!:any;
   ngOnInit() {
@@ -106,14 +106,12 @@ export class SingleBarChartTitleComponent implements OnInit{
     isLayered: true,
     label: this.title ? this.title : "Bar Chart"
   });
-
-
   }
 
   dataDescriptorSingleBarchart: CommonVizDataDescriptor = {
     [DEFAULT_DATASET]: {
       type: CommonVizDatasetType.Tabular,
-      keyFields: ['data'],
+      keyFields: ['dateTime'],
       valueFields: {
         value: {[DEFAULT_SERIES_VALUE]: 'value'},
       },

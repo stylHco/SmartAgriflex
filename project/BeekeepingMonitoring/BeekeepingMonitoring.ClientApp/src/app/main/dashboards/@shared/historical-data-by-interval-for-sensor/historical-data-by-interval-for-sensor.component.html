@@ -1,50 +1,66 @@
-<ng-container [appLoadableAutoManage]="dataLoadable"/>
-<section>
-  <div class="selection">
-    <h2 class="mb-2">Please select one of the Available or Available Devices</h2>
-    <form class="p-fluid"
-          [formGroup]="form" (ngSubmit)="submitForm()"
-          lossMonitor [lossRouteFilter]="activatedRoute">
-      <div class="field">
-        <label>
-          Device
-          <app-required-field-indicator></app-required-field-indicator>
-        </label>
+<p-card>
+  <ng-template pTemplate="header">
+      <h1 class="p-3 m-0 pb-0">{{ title }}</h1>
+  </ng-template>
 
-        <p-dropdown [inputId]="'device'" formControlName="device"
-                    [options]="(availableDevicesOptions$ | async) ?? []"
-                    optionValue="entry" optionLabel="label"
-                    appPlaceholder appFilterPlaceholder
-                    [filter]="true" [autoDisplayFirst]="true"/>
-        <app-form-control-errors controlName="device"></app-form-control-errors>
-      </div>
-      <div>
-        <button type="submit" [disabled]="!form.valid"
-                pButton class="p-button-success not-fluid">
-          Select
-        </button>
-      </div>
-    </form>
+  <section>
+    <div class="selection">
+      <h2 class="mb-2">Please select start and end Date</h2>
+      <form class="p-fluid"
+            [formGroup]="form" (ngSubmit)="submitForm()"
+            lossMonitor [lossRouteFilter]="activatedRoute">
+        <div class="grid">
+          <div class="field col-12 md:col-6">
+            <label>
+              Start Date
+              <app-required-field-indicator></app-required-field-indicator>
+            </label>
+
+            <p-calendar [inputId]="'startDate'" formControlName="startDate" [showButtonBar]="true"/>
+
+            <app-form-control-errors controlName="startDate"></app-form-control-errors>
+          </div>
+
+          <div class="field col-12 md:col-6">
+            <label>
+              End Date
+              <app-required-field-indicator></app-required-field-indicator>
+            </label>
+
+            <p-calendar [inputId]="'endDate'" formControlName="endDate" [showButtonBar]="true"/>
+            <app-form-control-errors controlName="endDate"></app-form-control-errors>
+          </div>
+
+
+        </div>
+        <div>
+          <button type="submit" [disabled]="!form.valid"
+                  pButton class="p-button-success not-fluid">
+            Select
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <h3>{{ formatDate(startDateResult) }} - {{ formatDate(endDateResult) }}</h3>
+  <div class="loading" *ngIf="isLoading()">
+    <i class="pi pi-spin pi-spinner-dotted"></i>
   </div>
-</section>
 
+  <div class="errorMessage" *ngIf="hasError()">
+    <p>Error Loading the data. Please try again!</p>
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
+  </div>
 
-<div class="loading" *ngIf="isLoading">
-  <i class="pi pi-spin pi-spinner-dotted"></i>
-</div>
-
-<div *ngIf="errorMessage">
-  <p>{{ errorMessage }}</p>
-  <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
-</div>
-
-<div *ngIf="!isLoading && !errorMessage">
+  <div *ngIf="!isLoading() && !hasError()">
     <section class="my-8">
       <p-card
-        header="header">
-        <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"></app-live-line-chart>      </p-card>
+        header="Data">
+        <app-bar-chart [data]="transformedDate"></app-bar-chart>
+      </p-card>
     </section>
-</div>
+  </div>
 
 
-
+</p-card>

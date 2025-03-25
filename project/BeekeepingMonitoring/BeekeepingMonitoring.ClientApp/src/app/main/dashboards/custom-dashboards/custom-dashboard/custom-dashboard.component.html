@@ -1,8 +1,38 @@
-<div class="grid">
-  <div class="col-12 md:col-9">
-    <app-live-data-for-sensor [sensorType]="sensorType"></app-live-data-for-sensor>
-  </div>
-  <div class="col-12 md:col-3">
-    <app-live-gauge [sensorType]="sensorType"></app-live-gauge>
-  </div>
+<h1>
+  {{sensorType}}
+</h1>
+<!--<div class="grid">-->
+<!--  <div class="col-12 md:col-9">-->
+<!--    <app-live-data-for-sensor [sensorType]="sensorType"></app-live-data-for-sensor>-->
+<!--  </div>-->
+<!--  <div class="col-12 md:col-3">-->
+<!--    <app-live-gauge [sensorType]="sensorType"></app-live-gauge>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<div>-->
+<!--  <app-single-bar-chart-->
+<!--    [itemLoadable]="mainLoadable"-->
+<!--    title="Title"-->
+<!--    [intervalType]="inputModel.intervalTypeEnum"></app-single-bar-chart>-->
+<!--</div>-->
+
+<div class="mb-6">
+
+  <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
+                                              [interval]="DashboardIntervalTypeEnum.Hourly"
+                                              widgetId="HourlyWidget"
+                                              title="Hourly Data"
+  ></app-historical-data-by-interval-for-sensor>
+
+</div>
+
+<div>
+
+  <app-rules-legend
+  [sensorType]="sensorType"
+  title="Legend For Custom Rules">
+
+  </app-rules-legend>
+
 </div>

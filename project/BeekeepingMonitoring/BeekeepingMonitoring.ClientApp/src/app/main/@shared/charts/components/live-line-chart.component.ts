@@ -57,6 +57,7 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
       this.root = am5.Root.new(this.elementRef.nativeElement);
       this.root.setThemes([am5themes_Animated.new(this.root)]);
     }
+    console.log(this.jsonData)
 
     let chart = this.root.container.children.push(
       am5xy.XYChart.new(this.root, {

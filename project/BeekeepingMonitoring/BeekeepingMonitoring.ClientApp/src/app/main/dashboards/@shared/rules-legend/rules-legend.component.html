@@ -1,0 +1,28 @@
+<p-card [header]="title">
+  <div class="loading" *ngIf="isLoading()">
+    <i class="pi pi-spin pi-spinner-dotted"></i>
+  </div>
+
+  <div class="errorMessage" *ngIf="hasError()">
+    <p>Error Loading The data or data too old. Please try again!</p>
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
+  </div>
+
+  <div *ngIf="!isLoading() && !hasError()">
+
+      <div class="grid">
+        <div *ngFor="let item of customRules" class="p-4 col-12 md:col-4">
+        <div class="legend-item">
+          <span class="color-swatch" [style.background]="item.programDirective"></span>
+          <div class="range-label">
+            <span *ngIf="item.min !== null">{{ item.min }} ≤ </span>
+            Value
+            <span *ngIf="item.max !== null"> ≤ {{ item.max }}</span>
+          </div>
+          <div class="description">{{ item.ruleText }}</div>
+        </div>
+        </div>
+      </div>
+  </div>
+
+</p-card>
