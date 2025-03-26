@@ -1,22 +1,22 @@
 <section>
 
   <div class="selection">
-    <h2 class="mb-2">Please select one of the Available Sensors</h2>
+    <h2 class="mb-2">Please select one of the Available Devices</h2>
     <form class="p-fluid"
           [formGroup]="form" (ngSubmit)="submitForm()"
           lossMonitor [lossRouteFilter]="activatedRoute">
       <div class="field">
         <label>
-          Sensor
+          Devices
           <app-required-field-indicator></app-required-field-indicator>
         </label>
 
-        <p-dropdown [inputId]="'sensor'" formControlName="sensor"
+        <p-dropdown inputId="device" formControlName="device"
                     [options]="(availableDevicesOptions$ | async) ?? []"
                     optionValue="entry" optionLabel="label"
                     appPlaceholder appFilterPlaceholder
                     [filter]="true" [autoDisplayFirst]="true"/>
-        <app-form-control-errors controlName="sensor"></app-form-control-errors>
+        <app-form-control-errors controlName="device"></app-form-control-errors>
       </div>
 
 

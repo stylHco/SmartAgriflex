@@ -39,7 +39,7 @@ export class MainSegmentMenuComponent {
       items: [
         {label: 'Live Data', icon: 'pi pi-fw pi-sync', routerLink: '/app/live-data'},
         {label: 'History', icon: 'pi pi-fw pi-chart-line', routerLink: '/app/history-data'},
-        {label: 'Locations', icon: 'pi pi-fw pi-map-marker', routerLink: '/app/sensors'},
+        {label: 'Locations', icon: 'pi pi-fw pi-map-marker', routerLink: '/app/sensor-location'},
       ],
     },
     {

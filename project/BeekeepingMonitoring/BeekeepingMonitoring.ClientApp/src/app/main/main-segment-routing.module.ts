@@ -66,7 +66,7 @@ const routes: Routes = [{
         .then(m => m.routes),
     },
     {
-      path: 'sensors',
+      path: 'sensor-location',
       loadChildren: () => import('./sensor-locations/sensor-locations.entrypoint')
         .then(m => m.routes),
     },
