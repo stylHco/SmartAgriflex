@@ -1,37 +1,37 @@
-<p-card>
+<p-card >
   <ng-template pTemplate="header">
-      <h1 class="p-3 m-0 pb-0">{{ title }}</h1>
+    <h1 class="p-3 m-0 pb-0">{{ title }}</h1>
   </ng-template>
 
   <section>
     <div class="selection">
-      <h2 class="mb-2">Please select start and end Date</h2>
+      <h2 class="mb-2">Select two Year to compare</h2>
       <form class="p-fluid"
             [formGroup]="form" (ngSubmit)="submitForm()"
             lossMonitor [lossRouteFilter]="activatedRoute">
         <div class="grid">
           <div class="field col-12 md:col-6">
             <label>
-              Start Date
+              Year1
               <app-required-field-indicator></app-required-field-indicator>
             </label>
 
-            <p-calendar [inputId]="'startDate'" formControlName="startDate" [showButtonBar]="true"/>
+            <p-calendar [inputId]="'year1'" formControlName="year1" view="year" dateFormat="yy"/>
 
-            <app-form-control-errors controlName="startDate"></app-form-control-errors>
+            <app-form-control-errors controlName="year1"></app-form-control-errors>
           </div>
 
           <div class="field col-12 md:col-6">
             <label>
-              End Date
+              Year2
               <app-required-field-indicator></app-required-field-indicator>
             </label>
 
-            <p-calendar [inputId]="'endDate'" formControlName="endDate" [showButtonBar]="true"/>
-            <app-form-control-errors controlName="endDate"></app-form-control-errors>
+            <p-calendar [inputId]="'year2'" formControlName="year2"  view="year" dateFormat="yy"/>
+            <app-form-control-errors controlName="year2"></app-form-control-errors>
           </div>
-        </div>
-        <div>
+
+
           <button type="submit" [disabled]="!form.valid"
                   pButton class="p-button-success not-fluid">
             Select
@@ -41,23 +41,28 @@
     </div>
   </section>
 
-  <h3>{{ formatDateForDisplay(startDateResult) }} - {{ formatDateForDisplay(endDateResult) }}</h3>
+  <h3  class="mb-0" *ngIf="!isLoading() && !hasError()">{{ year1Result }} - {{ year2Result }}</h3>
+
   <div class="loading" *ngIf="isLoading()">
     <i class="pi pi-spin pi-spinner-dotted"></i>
   </div>
 
-  <div class="errorMessage" *ngIf="hasError()">
-    <p>Error Loading the data. Please try again!</p>
+  <div class="error" *ngIf="hasError()">
+    <p>Error Loading The data. Please try again!</p>
     <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
   </div>
 
   <div *ngIf="!isLoading() && !hasError()">
     <section class="mt-8">
-      <p-card>
-        <app-bar-chart [data]="transformedData"></app-bar-chart>
+
+    <p-card>
+        <app-double-line-chart *ngIf="transformedData" [data]="transformedData"
+                               [line1Label]="year1Result"
+                               [line2Label]="year2Result"
+        ></app-double-line-chart>
       </p-card>
     </section>
   </div>
 
-
 </p-card>
+

@@ -2914,7 +2914,7 @@ export class CustomDashboardClient {
         return _observableOf(null as any);
     }
 
-    getYtdComparisonForSensor(sensorTypeEnum: DashboardSensorTypeEnum | undefined, year1: number | undefined, year2: number | undefined): Observable<SensorDataFullDetailsModelWithRules[]> {
+    getYtdComparisonForSensor(sensorTypeEnum: DashboardSensorTypeEnum | undefined, year1: number | undefined, year2: number | undefined): Observable<MonthlySensorComparison[]> {
         let url_ = this.baseUrl + "/_api/custom-dashboards/get-ytd-comparison-for-sensor?";
         if (sensorTypeEnum === null)
             throw new Error("The parameter 'sensorTypeEnum' cannot be null.");
@@ -2945,14 +2945,14 @@ export class CustomDashboardClient {
                 try {
                     return this.processGetYtdComparisonForSensor(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<SensorDataFullDetailsModelWithRules[]>;
+                    return _observableThrow(e) as any as Observable<MonthlySensorComparison[]>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<SensorDataFullDetailsModelWithRules[]>;
+                return _observableThrow(response_) as any as Observable<MonthlySensorComparison[]>;
         }));
     }
 
-    protected processGetYtdComparisonForSensor(response: HttpResponseBase): Observable<SensorDataFullDetailsModelWithRules[]> {
+    protected processGetYtdComparisonForSensor(response: HttpResponseBase): Observable<MonthlySensorComparison[]> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -2966,7 +2966,7 @@ export class CustomDashboardClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(SensorDataFullDetailsModelWithRules.fromJS(item));
+                    result200!.push(MonthlySensorComparison.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -6989,6 +6989,57 @@ export enum DashboardIntervalTypeEnum {
     Weekly = "Weekly",
     Monthly = "Monthly",
     Yearly = "Yearly",
+}
+
+export class MonthlySensorComparison implements IMonthlySensorComparison {
+    month!: string;
+    year1Value!: number | null;
+    year2Value!: number | null;
+
+    constructor(data?: IMonthlySensorComparison) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.month = _data["month"] !== undefined ? _data["month"] : <any>null;
+            this.year1Value = _data["year1Value"] !== undefined ? _data["year1Value"] : <any>null;
+            this.year2Value = _data["year2Value"] !== undefined ? _data["year2Value"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): MonthlySensorComparison {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlySensorComparison();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["month"] = this.month !== undefined ? this.month : <any>null;
+        data["year1Value"] = this.year1Value !== undefined ? this.year1Value : <any>null;
+        data["year2Value"] = this.year2Value !== undefined ? this.year2Value : <any>null;
+        return data;
+    }
+
+    clone(): MonthlySensorComparison {
+        const json = this.toJSON();
+        let result = new MonthlySensorComparison();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMonthlySensorComparison {
+    month: string;
+    year1Value: number | null;
+    year2Value: number | null;
 }
 
 export class CustomRulesListModel implements ICustomRulesListModel {

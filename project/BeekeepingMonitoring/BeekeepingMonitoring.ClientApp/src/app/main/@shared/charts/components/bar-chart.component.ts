@@ -19,7 +19,6 @@ import {LoadableDisplayMediumModule} from "../../../../@shared/loadables/status-
 import {CommonChartPresenterModule} from "../../../../@shared/charts/common-chart-presenter";
 
 import * as am5 from "@amcharts/amcharts5";
-import {TransformDoubleBarChartPipe} from "../pipes/transform-double-bar-chart.pipe";
 import {UntilDestroy} from "@ngneat/until-destroy";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -37,7 +36,6 @@ import {BarChartInterface} from "./bar-chart-interface";
     LoadablesTemplateUtilsModule,
     LoadableDisplayMediumModule,
     CommonChartPresenterModule,
-    TransformDoubleBarChartPipe,
   ],
   template: `
   `,
@@ -69,7 +67,6 @@ export class BarChartComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.createChart();
-    console.log(this.data)
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -80,9 +77,12 @@ export class BarChartComponent implements OnInit, OnChanges {
 
   private colorTransformer(color: string): am5.Color {
     // return the default blue if the value is no rule otherwise return the actual color. If it is undefined return black
-    return am5.color(color ? color == "No Rules"? "#648fd4" : color : "#000000");
+    return am5.color(color ? color.toLowerCase() == "no rules"? "#648fd4" : color : "#000000");
   }
 
+
+  // The code here is inspired from am5 charts
+  // the code can be found here https://www.amcharts.com/demos/column-with-rotated-series/
   private createChart(): void {
     // Create root element
     this.root = am5.Root.new(this.elementRef.nativeElement);

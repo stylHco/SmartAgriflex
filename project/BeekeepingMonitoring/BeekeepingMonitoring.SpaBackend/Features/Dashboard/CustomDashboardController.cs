@@ -51,7 +51,7 @@ public partial class CustomDashboardController : ControllerBase
         Yearly = 4,
     }
 
-    string getSensorTypeName(DashboardSensorTypeEnum dashboardSensorTypeEnum)
+    string GetSensorTypeName(DashboardSensorTypeEnum dashboardSensorTypeEnum)
     {
         switch (dashboardSensorTypeEnum)
         {
@@ -84,7 +84,7 @@ public partial class CustomDashboardController : ControllerBase
     public async Task<ActionResult<List<FullDetailsModel>>> GetLiveDataForSensor(
         DashboardSensorTypeEnum sensorTypeEnum, string deviceIdStr = "all")
     {
-        string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
+        string selectedSensorStr = GetSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -226,7 +226,7 @@ public partial class CustomDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<float>> GetLiveGauge(DashboardSensorTypeEnum sensorTypeEnum)
     {
-        string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
+        string selectedSensorStr = GetSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -237,7 +237,7 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("Sensor is invalid.");
         }
 
-        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(1));
+        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(5));
 
         var latestData = await _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
@@ -271,14 +271,14 @@ public partial class CustomDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetDataForSensor(
         GetDataForSensorInputModel inputModel
-        )
+    )
     {
         if (inputModel.EndDate > inputModel.EndDate)
         {
             return BadRequest("Start time cannot be after end time.");
         }
 
-        string selectedSensorStr = getSensorTypeName(inputModel.SensorTypeEnum);
+        string selectedSensorStr = GetSensorTypeName(inputModel.SensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -315,15 +315,15 @@ public partial class CustomDashboardController : ControllerBase
                 Week = inputModel.IntervalTypeEnum == DashboardIntervalTypeEnum.Weekly
                     ? ISOWeek.GetWeekOfYear(s.RecordDate.ToDateTimeUnspecified())
                     : 0,
-                Day = (inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Daily ||
-                       inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Hourly)
+                Day = (inputModel.IntervalTypeEnum == DashboardIntervalTypeEnum.Daily ||
+                       inputModel.IntervalTypeEnum == DashboardIntervalTypeEnum.Hourly)
                     ? s.RecordDate.Day
                     : 1,
-                Hour = inputModel.IntervalTypeEnum  == DashboardIntervalTypeEnum.Hourly ? s.RecordDate.Hour : 0
+                Hour = inputModel.IntervalTypeEnum == DashboardIntervalTypeEnum.Hourly ? s.RecordDate.Hour : 0
             })
             .Select(g => new
             {
-                TimePeriod = inputModel.IntervalTypeEnum  switch
+                TimePeriod = inputModel.IntervalTypeEnum switch
                 {
                     DashboardIntervalTypeEnum.Hourly => new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day,
                         g.Key.Hour, 0),
@@ -398,10 +398,10 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("get-ytd-comparison-for-sensor")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<SensorDataFullDetailsModelWithRules>>> GetYtdComparisonForSensor(
+    public async Task<ActionResult<List<MonthlySensorComparison>>> GetYtdComparisonForSensor(
         DashboardSensorTypeEnum sensorTypeEnum, int year1, int year2)
     {
-        string selectedSensorStr = getSensorTypeName(sensorTypeEnum);
+        string selectedSensorStr = GetSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -411,46 +411,59 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("Sensor is invalid.");
         }
 
-        IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
+        // Get data for both years
+        var sensorData = await _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Sensor)
             .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id &&
-                         sd.RecordDate.Year == year1 ||
-                         sd.RecordDate.Year == year2
-            );
-
-        var rules = await _dbContext.CustomRules
-            .Where(r => r.SensorId == selectedSensor.Id)
+                         (sd.RecordDate.Year == year1 || sd.RecordDate.Year == year2))
+            .GroupBy(sd => new
+            {
+                sd.RecordDate.Year,
+                sd.RecordDate.Month
+            })
+            .Select(g => new
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                AvgValue = g.Average(sd => sd.Value ?? 0)
+            })
             .ToListAsync();
-
-        var sensorData = query
-            .AsEnumerable()
-            .GroupBy(g => new
-            {
-                g.RecordDate.Year,
-                Month = g.RecordDate.Month,
-            })
-            .Select(s => new
-            {
-                TimePeriod = new LocalDateTime(s.Key.Year, s.Key.Month, 1, 0, 0),
-                AvgValue = s.Average(a => a.Value ?? 0),
-            })
-            .ToList();
 
         if (!sensorData.Any())
         {
-            return BadRequest("There is no data for the selected sensor.");
+            return BadRequest("No data available for the selected sensor and years.");
         }
 
-        var result = sensorData.Select(sd => new SensorDataFullDetailsModelWithRules()
+        // Create result structure with all months
+        var result = new List<MonthlySensorComparison>();
+        var monthNames = new[]
         {
-            Sensor = selectedSensor,
-            Value = sd.AvgValue,
-            RecordDate = sd.TimePeriod,
-            Rule = rules.Any() ? MatchRule(sd.AvgValue, rules) : "No rules"
-        }).ToList();
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        };
+
+        for (int month = 1; month <= 12; month++)
+        {
+            var year1Data = sensorData.FirstOrDefault(d => d.Year == year1 && d.Month == month);
+            var year2Data = sensorData.FirstOrDefault(d => d.Year == year2 && d.Month == month);
+
+            result.Add(new MonthlySensorComparison
+            {
+                Month = monthNames[month - 1],
+                Year1Value = year1Data?.AvgValue ?? null,
+                Year2Value = year2Data?.AvgValue ?? null
+            });
+        }
 
         return Ok(result);
+    }
+
+    public class MonthlySensorComparison
+    {
+        public string Month { get; set; }
+        public decimal? Year1Value { get; set; }
+        public decimal? Year2Value { get; set; }
     }
 
     #endregion
@@ -552,15 +565,14 @@ public partial class CustomDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<DeviceReferenceModel>>> FilterDevices(
-        [FromQuery] string? sensorIdStr = null, 
+        [FromQuery] string? sensorIdStr = null,
         [FromQuery] DashboardSensorTypeEnum? sensorTypeEnum = null)
     {
-
         if (sensorIdStr == null && sensorTypeEnum == null)
         {
             return BadRequest("Must provide a Sensor");
         }
-        
+
         if (sensorIdStr != null && sensorTypeEnum != null)
         {
             return BadRequest("Only one way to provide a Sensor is supported");
@@ -568,7 +580,7 @@ public partial class CustomDashboardController : ControllerBase
 
         int[] sensorIdArray = null;
         List<int> validSensorIds = new List<int>();
-        
+
         if (sensorIdStr != null && sensorTypeEnum == null)
         {
             sensorIdArray = sensorIdStr.Split(',')
@@ -589,10 +601,10 @@ public partial class CustomDashboardController : ControllerBase
         }
         else if (sensorIdStr == null && sensorTypeEnum != null)
         {
-            string selectedSensorStr = getSensorTypeName( sensorTypeEnum?? DashboardSensorTypeEnum.Temperature);
+            string selectedSensorStr = GetSensorTypeName(sensorTypeEnum ?? DashboardSensorTypeEnum.Temperature);
             validSensorIds = await _dbContext.Sensors
                 .Where(s => s.Name == selectedSensorStr)
-                .Select(s=> s.Id)
+                .Select(s => s.Id)
                 .ToListAsync();
 
             if (!validSensorIds.Any())
@@ -665,9 +677,9 @@ public partial class CustomDashboardController : ControllerBase
             .Where(d => sensorsWithDevices.Contains(d.Id))
             .Select(d => new SensorReferenceModel
             {
-                Id = d.Id, 
+                Id = d.Id,
                 Name = d.Name,
-                Description = d.Description    
+                Description = d.Description
             })
             .ToListAsync();
 
@@ -675,7 +687,7 @@ public partial class CustomDashboardController : ControllerBase
     }
 
     #endregion
-    
+
 // =====================================================================================================================
 // =====================================================================================================================
 // =====================================================================================================================
@@ -688,7 +700,7 @@ public partial class CustomDashboardController : ControllerBase
     public async Task<ActionResult<List<CustomRulesController.ListModel>>> GetCustomRulesForSensor(
         DashboardSensorTypeEnum sensorType)
     {
-        string selectedSensorStr = getSensorTypeName(sensorType);
+        string selectedSensorStr = GetSensorTypeName(sensorType);
         var selectedSensor = await _dbContext.Sensors
             .Where(s => s.Name == selectedSensorStr)
             .SingleOrDefaultAsync();
@@ -704,6 +716,6 @@ public partial class CustomDashboardController : ControllerBase
 
         return customRules.Any() ? Ok(customRules) : BadRequest("There are no Custom Rules for this sensor");
     }
-    
+
     #endregion
 }

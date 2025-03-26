@@ -1,50 +1,51 @@
 <ng-container [appLoadableAutoManage]="dataLoadable"/>
-<section>
-  <div class="selection">
-    <h2 class="mb-2">Please select one of the Available or Available Devices</h2>
-    <form class="p-fluid"
-          [formGroup]="form" (ngSubmit)="submitForm()"
-          lossMonitor [lossRouteFilter]="activatedRoute">
-      <div class="field">
-        <label>
-          Device
-          <app-required-field-indicator></app-required-field-indicator>
-        </label>
+<p-card [header]="title">
+  <section>
+    <div class="selection">
+      <h2 class="mb-2">Please select one of the Available or Available Devices</h2>
+      <form class="p-fluid"
+            [formGroup]="form" (ngSubmit)="submitForm()"
+            lossMonitor [lossRouteFilter]="activatedRoute">
+        <div class="field">
+          <label>
+            Device
+            <app-required-field-indicator></app-required-field-indicator>
+          </label>
 
-        <p-dropdown [inputId]="'device'" formControlName="device"
-                    [options]="(availableDevicesOptions$ | async) ?? []"
-                    optionValue="entry" optionLabel="label"
-                    appPlaceholder appFilterPlaceholder
-                    [filter]="true" [autoDisplayFirst]="true"/>
-        <app-form-control-errors controlName="device"></app-form-control-errors>
-      </div>
-      <div>
-        <button type="submit" [disabled]="!form.valid"
-                pButton class="p-button-success not-fluid">
-          Select
-        </button>
-      </div>
-    </form>
+          <p-dropdown [inputId]="'device'" formControlName="device"
+                      [options]="(availableDevicesOptions$ | async) ?? []"
+                      optionValue="entry" optionLabel="label"
+                      appPlaceholder appFilterPlaceholder
+                      [filter]="true" [autoDisplayFirst]="true"/>
+          <app-form-control-errors controlName="device"></app-form-control-errors>
+        </div>
+        <div>
+          <button type="submit" [disabled]="!form.valid"
+                  pButton class="p-button-success not-fluid">
+            Select
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <h3  class="mb-0" *ngIf="!isLoading() && !hasError()">{{ selectedDevice }}</h3>
+
+  <div class="loading" *ngIf="isLoading()">
+    <i class="pi pi-spin pi-spinner-dotted"></i>
   </div>
-</section>
 
+  <div class="error" *ngIf="hasError()">
+    <p>Error Loading The data. Please try again!</p>
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
+  </div>
 
-<div class="loading" *ngIf="isLoading()">
-  <i class="pi pi-spin pi-spinner-dotted"></i>
-</div>
-
-<div class="error" *ngIf="hasError()">
-  <p>Error Loading The data. Please try again!</p>
-  <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
-</div>
-
-<div *ngIf="!isLoading() && !hasError()">
-    <section class="my-8">
+  <div *ngIf="!isLoading() && !hasError()">
       <p-card
-        header="header">
-        <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"></app-live-line-chart>      </p-card>
-    </section>
-</div>
+        header="Live Data">
+        <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"></app-live-line-chart>
+      </p-card>
+  </div>
 
-
+</p-card>
 

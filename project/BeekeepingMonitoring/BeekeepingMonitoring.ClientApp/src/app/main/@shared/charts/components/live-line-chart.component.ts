@@ -51,14 +51,16 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
     this.disposeChart();
   }
 
+
+
+  // The code here is inspired from am5 charts
+  // the code can be found here https://www.amcharts.com/demos/live-data/
   generateChart() {
     // Create root element if not already created
     if (!this.root) {
       this.root = am5.Root.new(this.elementRef.nativeElement);
       this.root.setThemes([am5themes_Animated.new(this.root)]);
     }
-    console.log(this.jsonData)
-
     let chart = this.root.container.children.push(
       am5xy.XYChart.new(this.root, {
         focusable: true,

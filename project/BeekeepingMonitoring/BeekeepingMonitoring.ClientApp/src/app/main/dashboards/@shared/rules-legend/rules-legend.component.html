@@ -10,19 +10,23 @@
 
   <div *ngIf="!isLoading() && !hasError()">
 
-      <div class="grid">
-        <div *ngFor="let item of customRules" class="p-4 col-12 md:col-4">
-        <div class="legend-item">
-          <span class="color-swatch" [style.background]="item.programDirective"></span>
-          <div class="range-label">
-            <span *ngIf="item.min !== null">{{ item.min }} ≤ </span>
-            Value
-            <span *ngIf="item.max !== null"> ≤ {{ item.max }}</span>
+    <div class="grid">
+      <div *ngFor="let item of customRules" class="p-1 col-12 md:col-4 lg:col-3">
+        <p-card>
+          <div class="flex gap-3 mb-3 flex-wrap	">
+            <span class="color-swatch" [style.background]="item.programDirective"></span>
+            <div class="font-bold">
+              <span *ngIf="item.min !== null">{{ item.min }} ≤ </span>
+              Value
+              <span *ngIf="item.max !== null"> ≤ {{ item.max }}</span>
+            </div>
           </div>
-          <div class="description">{{ item.ruleText }}</div>
-        </div>
-        </div>
+          <div>
+            <div class="font-light">{{ item.ruleText }}</div>
+          </div>
+        </p-card>
       </div>
+    </div>
   </div>
 
 </p-card>

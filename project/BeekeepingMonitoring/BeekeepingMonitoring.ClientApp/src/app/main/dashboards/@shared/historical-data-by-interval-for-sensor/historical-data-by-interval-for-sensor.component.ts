@@ -11,22 +11,17 @@ import {
 } from '@angular/core';
 import {
   CustomDashboardClient, DashboardIntervalTypeEnum,
-  DashboardSensorTypeEnum,
-  DeviceReferenceModel, DevicesClient, GetDataForSensorInputModel, SensorDataFullDetailsModelWithRules,
+  DashboardSensorTypeEnum, GetDataForSensorInputModel,
 
 } from "../../../../@core/app-api";
 import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
 import {
-  AbstractControl,
   FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn
 } from "@angular/forms";
 import {EMPTY, Subject, takeUntil} from "rxjs";
-import {DeviceRepresentingService} from "../../../../@core/devices/device-representing.utils";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {CommonValidators} from "../../../../@shared/utils/common-validators";
 import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
@@ -43,16 +38,16 @@ import {
 import {
   LoadablesTemplateUtilsModule
 } from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
-import {localDateToNative, nativeToLocalDate} from "../../../../@shared/date-time/joda.helpers";
+import {nativeToLocalDate} from "../../../../@shared/date-time/joda.helpers";
 import {CalendarModule} from "primeng/calendar";
 import {BarChartComponent} from "../../../@shared/charts/components/bar-chart.component";
 import {
-  BarChartInterface,
   transformBarChartData
 } from "../../../@shared/charts/pipes/transform-bar-chart";
 import {catchError} from "rxjs/operators";
+import {BarChartInterface} from "../../../@shared/charts/components/bar-chart-interface";
 
-interface SensorSelectionForm {
+interface SelectionFormInterface {
   startDate: FormControl<Date | null>;
   endDate: FormControl<Date | null>;
 }
@@ -100,10 +95,10 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
   isLoading = signal(true);
   hasError = signal(false);
 
-  transformedDate!: BarChartInterface[];
+  transformedData!: BarChartInterface[];
 
   inputModel!: GetDataForSensorInputModel;
-  form!: FormGroup<SensorSelectionForm>;
+  form!: FormGroup<SelectionFormInterface>;
   startDateResult!: any;
   endDateResult!: any;
 
@@ -133,10 +128,19 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
     return date.toISOString().split('T')[0]; // Extracts "YYYY-MM-DD"
   };
 
+
+  formatDateForDisplay = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+
   setDefaultDatesAndUpdateUrl() {
     this.urlInitialized = true;
     const now = new Date();
-    this.endDateResult = now;
+    this.endDateResult = new Date();
 
     switch (this.interval) {
 
@@ -212,7 +216,7 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
   }
 
 
-  private buildCreateForm(): FormGroup<SensorSelectionForm> {
+  private buildCreateForm(): FormGroup<SelectionFormInterface> {
     return new FormGroup({
         startDate: new FormControl<Date | null>(null, {
           validators: [
@@ -249,7 +253,7 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
           sensorTypeEnum: this.sensorType,
           intervalTypeEnum: this.interval,
           startDate: nativeToLocalDate(new Date(params[`startDate_${this.widgetId}`]))!,
-          endDate: nativeToLocalDate(new Date(params[`startDate_${this.widgetId}`]))!,
+          endDate: nativeToLocalDate(new Date(params[`endDate_${this.widgetId}`]))!,
         });
 
         this.customDashboardClient.getDataForSensor(this.inputModel).pipe(
@@ -261,8 +265,7 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
             return EMPTY;
           })
         ).subscribe(response => {
-          this.transformedDate = transformBarChartData(response, this.interval);
-          console.log(this.transformedDate)
+          this.transformedData = transformBarChartData(response, this.interval);
           this.hasError.set(false);
           this.isLoading.set(false);
 

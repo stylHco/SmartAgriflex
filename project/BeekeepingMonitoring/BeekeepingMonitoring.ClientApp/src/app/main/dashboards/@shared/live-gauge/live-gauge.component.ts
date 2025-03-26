@@ -55,8 +55,6 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
   @Input()
   sensorType!: DashboardSensorTypeEnum;
 
-  sensorTypeInside!: DashboardSensorTypeEnum;
-
   isLoading = signal(false);
   hasError = signal(false);
   liveMeasurement!: number;
@@ -72,13 +70,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.activatedRoute.params
-      .pipe(
-        autoMarkForCheck(this.cd))
-      .subscribe((params: Params) => {
-        this.sensorTypeInside = params['sensorType'];
-      });
-    this.fetchData(this.sensorType, true);
+    this.fetchData(true);
 
     switch (this.sensorType) {
       case DashboardSensorTypeEnum.Temperature:
@@ -98,14 +90,13 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
         break;
     }
   }
-
   ngOnDestroy(): void {
     this.stopPolling();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private fetchData(sensorType: DashboardSensorTypeEnum, isFirstLoad: boolean = false) {
+  private fetchData(isFirstLoad: boolean = false) {
     if (isFirstLoad) {
       this.isLoading.set(true);
       this.cd.markForCheck(); // Ensure UI updates for loading state
@@ -113,7 +104,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
     this.hasError.set(false);
 
-    this.customDashboardClient.getLiveGauge(sensorType).pipe(
+    this.customDashboardClient.getLiveGauge(this.sensorType).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         this.hasError.set(true);
@@ -131,16 +122,16 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
       this.cd.markForCheck(); // Ensure UI updates for new data
 
       // Start polling every 1 minute after we ensure that we fetch the data successfully
-      this.startPolling(sensorType);
+      this.startPolling();
     });
   }
 
-  private startPolling(sensorType: DashboardSensorTypeEnum) {
+  private startPolling() {
     this.stopPolling();
 
     this.pollingSubscription = interval(60000) // Every 1 minute
       .pipe(
-        switchMap(() => this.customDashboardClient.getLiveGauge(sensorType).pipe(
+        switchMap(() => this.customDashboardClient.getLiveGauge(this.sensorType).pipe(
           catchError(err => {
             this.hasError.set(true);
             this.stopPolling(); // Stop polling on error
@@ -166,7 +157,8 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
   // Retry logic (only called when the user presses Retry)
   retry() {
-    this.fetchData(this.sensorType, true);
+    this.fetchData(true);
   }
 
+  protected readonly Number = Number;
 }

@@ -12,27 +12,12 @@ const routes: Routes = [{
   children: [
     {
       path: '',
-      redirectTo: 'dashboards/configurable',
+      redirectTo: 'dashboards/custom',
       pathMatch: 'full',
     },
     {
       path: 'dashboards',
       children: [
-        {
-          path: 'configurable',
-          loadChildren: () => import('./dashboards/configurable/configurable-dashboard.entrypoint')
-            .then(i => i.routes),
-        },
-        {
-          path: 'predefined',
-          children: [
-            {
-              path: 'market-basket',
-              loadChildren: () => import('./dashboards/predefined/market-basket/market-basket.entrypoint')
-                .then(i => i.routes),
-            },
-          ],
-        },
         {
           path: 'custom',
           loadChildren: () => import('./dashboards/custom-dashboards/custom-dashboards.entrypoint')

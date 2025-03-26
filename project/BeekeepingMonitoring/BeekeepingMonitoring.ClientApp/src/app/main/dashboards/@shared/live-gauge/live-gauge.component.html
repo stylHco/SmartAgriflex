@@ -10,7 +10,7 @@
 
   <div *ngIf="!isLoading() && !hasError()">
     <p class="liveMeasurement">
-      {{ liveMeasurement }}
+      {{ Number(liveMeasurement.toFixed(2)) }}
     <span [innerHTML]="liveMeasurementType"></span>
     </p>
   </div>

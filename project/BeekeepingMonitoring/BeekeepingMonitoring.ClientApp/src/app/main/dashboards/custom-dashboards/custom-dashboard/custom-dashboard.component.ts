@@ -5,16 +5,18 @@ import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpe
 import {ActivatedRoute, Params} from "@angular/router";
 import {
   CustomDashboardClient, DashboardIntervalTypeEnum,
-  DashboardSensorTypeEnum,
+  DashboardSensorTypeEnum
 } from "../../../../@core/app-api";
-import {SingleBarChartTitleComponent} from "../../../@shared/charts/components/single-bar-chart-title.component";
 import {BarChartComponent} from "../../../@shared/charts/components/bar-chart.component";
-import {TransformSingleBarChartPipe} from "../../../@shared/charts/pipes/transform-single-bar-chart.pipe";
 import {NgIf} from "@angular/common";
 import {
   HistoricalDataByIntervalForSensorComponent
 } from "../../@shared/historical-data-by-interval-for-sensor/historical-data-by-interval-for-sensor.component";
 import {RulesLegendComponent} from "../../@shared/rules-legend/rules-legend.component";
+import {DoubleLineChartComponent} from "../../../@shared/charts/components/double-line-chart.component";
+import {transformDoubleLineData} from "../../../@shared/charts/pipes/transform-double-line-chart";
+import {DoubleLineChartDateInterface} from "../../../@shared/charts/components/double-line-chart-interface";
+import {YearToDateComparisonComponent} from "../../@shared/year-to-date-comparison/year-to-date-comparison.component";
 
 @Component({
   selector: 'app-custom-dashboard',
@@ -22,29 +24,31 @@ import {RulesLegendComponent} from "../../@shared/rules-legend/rules-legend.comp
   imports: [
     LiveDataForSensorComponent,
     LiveGaugeComponent,
-    SingleBarChartTitleComponent,
     BarChartComponent,
-    TransformSingleBarChartPipe,
     NgIf,
     HistoricalDataByIntervalForSensorComponent,
-    RulesLegendComponent
+    RulesLegendComponent,
+    DoubleLineChartComponent,
+    YearToDateComparisonComponent
   ],
   templateUrl: './custom-dashboard.component.html',
   styleUrl: './custom-dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CustomDashboardComponent implements OnInit{
+export class CustomDashboardComponent implements OnInit {
 
 
   sensorType!: DashboardSensorTypeEnum;
 
-loaded = false;
+  data!: DoubleLineChartDateInterface[];
+initialized=false;
   constructor(
     private activatedRoute: ActivatedRoute,
     private customDashboardClient: CustomDashboardClient,
     private cd: ChangeDetectorRef
   ) {
   }
+
   ngOnInit() {
     this.activatedRoute.params
       .pipe(
@@ -52,6 +56,18 @@ loaded = false;
       .subscribe((params: Params) => {
         this.sensorType = params['sensorType'];
       });
+
+    this.customDashboardClient.getYtdComparisonForSensor(this.sensorType, 2023, 2025)
+      .pipe(
+        autoMarkForCheck(this.cd)
+      )
+      .subscribe(data => {
+        console.log((data))
+        this.data = transformDoubleLineData(data);
+        this.initialized = true
+        // console.log(transformDoubleLineData(data))
+      })
+
 
   }
 

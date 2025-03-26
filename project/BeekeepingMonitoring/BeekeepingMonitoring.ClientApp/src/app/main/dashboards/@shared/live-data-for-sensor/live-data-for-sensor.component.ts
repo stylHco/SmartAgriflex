@@ -37,8 +37,9 @@ import {
   LoadablesTemplateUtilsModule
 } from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
 import {catchError} from "rxjs/operators";
+import {nativeToLocalDate} from "../../../../@shared/date-time/joda.helpers";
 
-interface SensorSelectionForm {
+interface DeviceSelectionForm {
   device: FormControl<DeviceReferenceModel | null>;
 }
 
@@ -70,6 +71,12 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
   @Input()
   sensorType!: DashboardSensorTypeEnum;
 
+  @Input()
+  widgetId: string = "liveDataWidget";
+
+  @Input()
+  title!: string;
+
   isLoading = signal(false);
   hasError = signal(false);
 
@@ -78,29 +85,29 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
   destroy$ = new Subject<void>();
 
   availableDevicesResults: DeviceReferenceModel[] = [];
-  availableDevicesFormResult!: DeviceReferenceModel;
   availableDevices: DeviceReferenceModel[] = [];
   availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
 
   specificSensorData!: CustomDashboardDataFullDetailsModel[];
   transformedData!: TransformedData[];
-  form!: FormGroup<SensorSelectionForm>;
+  form!: FormGroup<DeviceSelectionForm>;
   dataLoadable!: Loadable<TransformedData[]>;
+
+  selectedDevice!:string;
+
 
   deviceId!: string;
   constructor(
     protected readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private ngZone: NgZone,
     private cd: ChangeDetectorRef,
     private deviceRepresentingService: DeviceRepresentingService,
-    private devicesClient: DevicesClient,
     private customDashboardClient: CustomDashboardClient
   ) {
   }
 
   ngOnInit() {
-
+    this.isLoading.set(true);
     this.customDashboardClient.filterDevices(null, this.sensorType)
       .pipe(
         autoMarkForCheck(this.cd),
@@ -110,30 +117,21 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
         this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'All(Average)', nickname: ''}));
         this.availableDevicesResults = this.availableDevices
         this.availableDevicesOptions$ = this.deviceRepresentingService.getOptions(this.availableDevicesResults);
+
+        this.activatedRoute.queryParams
+          .pipe(
+            autoMarkForCheck(this.cd),
+          )
+          .subscribe((params: Params) => {
+            this.deviceId = params[`deviceId_${this.widgetId}`];
+            this.selectedDevice =  this.availableDevices.find(d => d.id == (
+              this.deviceId != "all" ? Number(this.deviceId) : -1))?.name!
+            // Start polling
+            this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
+          });
       })
 
     this.form = this.buildCreateForm();
-
-    this.activatedRoute.params
-      .pipe(
-        autoMarkForCheck(this.cd),
-      )
-      .subscribe((params: Params) => {
-        const sensor: string = params['sensorType'];
-        // Convert sensor from string to Enum
-        if (sensor && Object.values(DashboardSensorTypeEnum).includes(sensor as DashboardSensorTypeEnum)) {
-          this.sensorType = sensor as DashboardSensorTypeEnum;
-        }
-
-        this.deviceId = params['liveDataDeviceId'];
-        if (!isNaN(Number(this.deviceId))) {
-          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(this.deviceId))!;
-        }
-        // Start polling
-        this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
-
-      });
-
   }
 
   submitForm() {
@@ -144,11 +142,15 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       if (this.form.controls.device.value.id != -1) {
         deviceId = this.form.controls.device.value.id.toString();
       } else {
-        deviceId = 'all'
-      }
+        deviceId = 'all'      }
 
-      this.ngZone.run(() => {
-        this.router.navigate([{liveDataDeviceId: deviceId}], {relativeTo: this.activatedRoute});
+      this.router.navigate([], {
+        queryParams: {
+          [`deviceId_${this.widgetId}`]: deviceId,
+        },
+        relativeTo: this.activatedRoute,
+        queryParamsHandling: 'merge',
+        replaceUrl: true, // Prevent adding new history entry
       });
     } else {
       console.error("Sensor id or Device Id is undefined!!");
@@ -158,7 +160,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
   }
 
-  private buildCreateForm(): FormGroup<SensorSelectionForm> {
+  private buildCreateForm(): FormGroup<DeviceSelectionForm> {
     return new FormGroup({
       device: new FormControl<DeviceReferenceModel | null>(null, {
         validators: [

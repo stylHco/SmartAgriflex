@@ -3,20 +3,17 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   signal
 } from '@angular/core';
 import {CardModule} from "primeng/card";
 import {CustomDashboardClient, CustomRulesListModel, DashboardSensorTypeEnum} from "../../../../@core/app-api";
-import {ActivatedRoute, Params, Router} from "@angular/router";
-import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
-import {EMPTY, interval, Subject, Subscription, switchMap, takeUntil} from "rxjs";
+import {ActivatedRoute, } from "@angular/router";
+import {EMPTY, Subject, takeUntil} from "rxjs";
 import {catchError} from "rxjs/operators";
 import {CommonModule} from "@angular/common";
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
-import {DashboardSensorMeasurementType} from "../dashboard-sensor-measurement-type";
 import {Button} from "primeng/button";
 
 @Component({

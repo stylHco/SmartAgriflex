@@ -25,9 +25,8 @@ export class MainSegmentMenuComponent {
   // Note that separators are not supported (no styling for them)
   items: MenuItem[] = [
     {
-      label: 'Home',
+      label: 'Dashboards',
       items: [
-        {label: 'Dashboard', icon: 'pi pi-fw pi-chart-bar', routerLink: '/app/dashboards/configurable'},
         {label: 'Temperature', icon: 'mdi mdi-thermometer', routerLink:`/app/dashboards/custom/${DashboardSensorTypeEnum.Temperature}`},
         {label: 'Humidity', icon: 'mdi mdi-water-percent', routerLink:`/app/dashboards/custom/${DashboardSensorTypeEnum.Humidity}`},
         {label: 'Light', icon: 'mdi mdi-sun-wireless', routerLink:`/app/dashboards/custom/${DashboardSensorTypeEnum.Light}`},
