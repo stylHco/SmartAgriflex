@@ -217,7 +217,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("CustomRules");
+                    b.ToTable("CustomRules", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.Dashboard.ConfigurableDashboard", b =>
@@ -235,7 +235,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConfigurableDashboards");
+                    b.ToTable("ConfigurableDashboards", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.Dashboard.ConfigurableDashboardTile", b =>
@@ -268,7 +268,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasIndex("ConfigurableDashboardId");
 
-                    b.ToTable("ConfigurableDashboardTiles");
+                    b.ToTable("ConfigurableDashboardTiles", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.Dashboard.SalesByYearBoxplotData", b =>
@@ -363,7 +363,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
                         .IsUnique()
                         .HasFilter("[Uid] IS NOT NULL");
 
-                    b.ToTable("Devices");
+                    b.ToTable("Devices", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.Identity.ApplicationUser", b =>
@@ -454,7 +454,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasIndex("SensorDeviceId");
 
-                    b.ToTable("SensorDeviceDatas");
+                    b.ToTable("SensorDeviceDatas", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.SensorDevices.SensorDevice", b =>
@@ -481,7 +481,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("SensorDevices");
+                    b.ToTable("SensorDevices", (string)null);
                 });
 
             modelBuilder.Entity("BeekeepingMonitoring.SpaBackend.Features.Sensors.Sensor", b =>
@@ -503,7 +503,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sensors");
+                    b.ToTable("Sensors", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -589,7 +589,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("BeekeepingMonitoring.SpaBackend.Features.Dashboard.PredefinedVisualizationTileOptions", "PredefinedVisualizationOptions", b1 =>
+                    b.OwnsOne("BeekeepingMonitoring.SpaBackend.Features.Dashboard.ConfigurableDashboardTile.PredefinedVisualizationOptions#BeekeepingMonitoring.SpaBackend.Features.Dashboard.PredefinedVisualizationTileOptions", "PredefinedVisualizationOptions", b1 =>
                         {
                             b1.Property<long>("ConfigurableDashboardTileId")
                                 .HasColumnType("bigint");
@@ -599,7 +599,7 @@ namespace BeekeepingMonitoring.SpaBackend.Data.Migrations
 
                             b1.HasKey("ConfigurableDashboardTileId");
 
-                            b1.ToTable("ConfigurableDashboardTiles");
+                            b1.ToTable("ConfigurableDashboardTiles", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ConfigurableDashboardTileId");

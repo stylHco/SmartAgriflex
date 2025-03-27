@@ -16,7 +16,7 @@ import {EMPTY, interval, Subject, Subscription, switchMap, takeUntil} from "rxjs
 import {catchError} from "rxjs/operators";
 import {CommonModule} from "@angular/common";
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
-import {DashboardSensorMeasurementType} from "../dashboard-sensor-measurement-type";
+import {DashboardSensorMeasurementType, getDashboardMeasurementTypeWithSymbols} from "../dashboard-sensor-measurement-type";
 import {Button} from "primeng/button";
 
 @Component({
@@ -58,7 +58,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   hasError = signal(false);
   liveMeasurement!: number;
-  liveMeasurementType!: DashboardSensorMeasurementType;
+  liveMeasurementType!: string | null;
   pollingSubscription: Subscription | null = null;
   destroy$ = new Subject<void>();
 
@@ -72,23 +72,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.fetchData(true);
 
-    switch (this.sensorType) {
-      case DashboardSensorTypeEnum.Temperature:
-        this.liveMeasurementType = DashboardSensorMeasurementType.Celsius;
-        break;
-      case DashboardSensorTypeEnum.Humidity:
-        this.liveMeasurementType = DashboardSensorMeasurementType.Percent;
-        break;
-      case DashboardSensorTypeEnum.WindSpeed:
-        this.liveMeasurementType = DashboardSensorMeasurementType.MetersPerSecond;
-        break;
-      case DashboardSensorTypeEnum.WindDirection:
-        this.liveMeasurementType = DashboardSensorMeasurementType.Degrees;
-        break;
-      case DashboardSensorTypeEnum.Light:
-        this.liveMeasurementType = DashboardSensorMeasurementType.Lux;
-        break;
-    }
+    this.liveMeasurementType = getDashboardMeasurementTypeWithSymbols(this.sensorType);
   }
   ngOnDestroy(): void {
     this.stopPolling();

@@ -11,7 +11,9 @@
   <div *ngIf="!isLoading() && !hasError()">
     <p class="liveMeasurement">
       {{ Number(liveMeasurement.toFixed(2)) }}
-    <span [innerHTML]="liveMeasurementType"></span>
+      @if (liveMeasurementType) {
+        <span [innerHTML]="liveMeasurementType"></span>
+      }
     </p>
   </div>
 </p-card>

@@ -36,6 +36,7 @@ import {DoubleLineChartDateInterface} from "../../../@shared/charts/components/d
 import {transformDoubleLineData} from "../../../@shared/charts/pipes/transform-double-line-chart";
 import {CalendarModule} from "primeng/calendar";
 import {DoubleLineChartComponent} from "../../../@shared/charts/components/double-line-chart.component";
+import {getDashboardMeasurementTypeText} from "../dashboard-sensor-measurement-type";
 
 interface formInterface {
   year1: FormControl<Date | null>;
@@ -210,4 +211,5 @@ export class YearToDateComparisonComponent implements OnInit, OnDestroy {
     this.fetchData();
   }
 
+    protected readonly getDashboardMeasurementTypeText = getDashboardMeasurementTypeText;
 }

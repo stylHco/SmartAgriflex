@@ -59,6 +59,9 @@ export class BarChartComponent implements OnInit, OnChanges {
 
   @Input() data: BarChartInterface[] = [];
 
+  @Input() xAxisTitle!: string;
+  @Input() yAxisTitle!: string;
+
 
   private chart: am5xy.XYChart | undefined;
 
@@ -170,6 +173,28 @@ export class BarChartComponent implements OnInit, OnChanges {
       const dataItem = target.dataItem?.dataContext as { color?: string };
       return dataItem?.color ? this.colorTransformer(dataItem.color) : stroke;
     });
+
+    // X-Axis Title (Numeric Value Axis)
+    xAxis.children.push(am5.Label.new(this.root, {
+      text: this.xAxisTitle,
+      fontSize: 14,
+      fill: am5.color(0x000000),
+      textAlign: "center",
+      x: am5.percent(50),
+      centerX: am5.percent(50),
+      paddingTop: 10
+    }));
+
+// Y-Axis Title (Category Axis)
+    yAxis.children.push(am5.Label.new(this.root, {
+      text: this.yAxisTitle,
+      fontSize: 14,
+      rotation: -90, // Rotate for vertical alignment
+      textAlign: "center",
+      y: am5.percent(50),
+      centerY: am5.percent(50),
+      paddingRight: 10
+    }));
 
     // Set data
     xAxis.data.setAll(this.data);

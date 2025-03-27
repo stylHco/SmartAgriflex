@@ -63,6 +63,10 @@ export class DoubleLineChartComponent implements OnInit, OnChanges {
   @Input() line2Label: string = "line2";
 
 
+  @Input() xAxisTitle!: string;
+  @Input() yAxisTitle!: string;
+
+
   private chart: am5xy.XYChart | undefined;
 
   constructor(private el: ElementRef) {
@@ -161,6 +165,31 @@ export class DoubleLineChartComponent implements OnInit, OnChanges {
       })
     );
     legend.data.setAll(chart.series.values);
+
+    // Add title to X Axis
+    xAxis.children.push(am5.Label.new(this.root, {
+      text: this.xAxisTitle,
+      fontSize: 14,
+      fontWeight: "bold",
+      fill: am5.color(0x000000),
+      textAlign: "center",
+      x: am5.percent(50),
+      centerX: am5.percent(50),
+      paddingTop: 10
+    }));
+
+// Add title to Y Axis
+    yAxis.children.push(am5.Label.new(this.root, {
+      text: this.yAxisTitle,
+      fontSize: 14,
+      fontWeight: "bold",
+      fill: am5.color(0x000000),
+      rotation: -90,
+      textAlign: "center",
+      y: am5.percent(50),
+      centerY: am5.percent(50),
+      paddingRight: 10
+    }));
 
 
     chart.appear(1000, 100);

@@ -94,12 +94,17 @@ public partial class CustomDashboardController : ControllerBase
             return BadRequest("Sensor is invalid.");
         }
 
+        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(5));
+
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Sensor)
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Device)
-            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id);
+            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id
+                         && sd.Value != null
+                         && sd.RecordDate > now
+            );
 
         bool includeAllDevices = false;
         int[] deviceIdArray = null;
@@ -166,6 +171,8 @@ public partial class CustomDashboardController : ControllerBase
                 .GroupBy(sd => sd.SensorDevice.Device.Id)
                 .SelectMany(g => g.Take(10)) // Get latest 10 per device
                 .ToList();
+            
+            
             var sensorData = deviceSensorData
                 .AsEnumerable()
                 .GroupBy(s => new
@@ -174,11 +181,13 @@ public partial class CustomDashboardController : ControllerBase
                     Month = s.RecordDate.Month,
                     Day = s.RecordDate.Day,
                     Hour = s.RecordDate.Hour,
+                    Minute = s.RecordDate.Minute,
+                    Second = s.RecordDate.Second,
                     SensorDevice = s.SensorDevice.Id
                 })
                 .Select(g => new
                 {
-                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, 0),
+                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, g.Key.Minute, g.Key.Second),
                     AvgValue = g.Average(a => a.Value ?? 0),
                 })
                 .Take(10)

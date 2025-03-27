@@ -59,6 +59,8 @@
         <app-double-line-chart *ngIf="transformedData" [data]="transformedData"
                                [line1Label]="year1Result"
                                [line2Label]="year2Result"
+                               yAxisTitle="Value({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+                               xAxisTitle="Date Time"
         ></app-double-line-chart>
       </p-card>
     </section>

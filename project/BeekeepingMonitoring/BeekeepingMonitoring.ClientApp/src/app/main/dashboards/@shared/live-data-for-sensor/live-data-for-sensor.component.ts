@@ -3,7 +3,6 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
-  NgZone,
   OnDestroy,
   OnInit,
   signal
@@ -12,7 +11,7 @@ import {
   CustomDashboardClient,
   CustomDashboardDataFullDetailsModel,
   DashboardSensorTypeEnum,
-  DeviceReferenceModel, DevicesClient,
+  DeviceReferenceModel,
 } from "../../../../@core/app-api";
 import {transformData2, TransformedData} from "../../../@shared/charts/pipes/transformation-time-line-chart";
 import {autoMarkForCheck} from "../../../../@shared/utils/change-detection-helpers";
@@ -37,7 +36,9 @@ import {
   LoadablesTemplateUtilsModule
 } from "../../../../@shared/loadables/template-utils/loadables-template-utils.module";
 import {catchError} from "rxjs/operators";
-import {nativeToLocalDate} from "../../../../@shared/date-time/joda.helpers";
+import {
+  getDashboardMeasurementTypeText,
+} from "../dashboard-sensor-measurement-type";
 
 interface DeviceSelectionForm {
   device: FormControl<DeviceReferenceModel | null>;
@@ -93,10 +94,11 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
   form!: FormGroup<DeviceSelectionForm>;
   dataLoadable!: Loadable<TransformedData[]>;
 
-  selectedDevice!:string;
+  selectedDevice!: string;
 
 
   deviceId!: string;
+
   constructor(
     protected readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
@@ -112,25 +114,29 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       .pipe(
         autoMarkForCheck(this.cd),
       )
-      .subscribe(data =>{
+      .subscribe(data => {
         this.availableDevices = data;
         this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'All(Average)', nickname: ''}));
         this.availableDevicesResults = this.availableDevices
         this.availableDevicesOptions$ = this.deviceRepresentingService.getOptions(this.availableDevicesResults);
-
         this.activatedRoute.queryParams
           .pipe(
             autoMarkForCheck(this.cd),
           )
           .subscribe((params: Params) => {
             this.deviceId = params[`deviceId_${this.widgetId}`];
-            this.selectedDevice =  this.availableDevices.find(d => d.id == (
+            this.selectedDevice = this.availableDevices.find(d => d.id == (
               this.deviceId != "all" ? Number(this.deviceId) : -1))?.name!
-            // Start polling
-            this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
           });
-      })
+      });
 
+    this.activatedRoute.queryParams
+      .pipe(
+        autoMarkForCheck(this.cd),
+      )
+      .subscribe((params: Params) => {
+        this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
+      });
     this.form = this.buildCreateForm();
   }
 
@@ -142,7 +148,8 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       if (this.form.controls.device.value.id != -1) {
         deviceId = this.form.controls.device.value.id.toString();
       } else {
-        deviceId = 'all'      }
+        deviceId = 'all'
+      }
 
       this.router.navigate([], {
         queryParams: {
@@ -197,7 +204,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       })
     ).subscribe(response => {
       this.specificSensorData = response;
-      this.transformedData = transformData2(this.specificSensorData);
+      this.transformedData = transformData2(response);
       this.hasError.set(false);
       this.isLoading.set(false);
 
@@ -226,6 +233,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
       .subscribe(data => {
         this.specificSensorData = data;
         this.transformedData = transformData2(this.specificSensorData);
+        console.log(data)
         this.hasError.set(false);
         this.cd.markForCheck(); // Ensure UI updates with new live data
       });
@@ -243,4 +251,5 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
     this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
   }
 
+  protected readonly getDashboardMeasurementTypeText = getDashboardMeasurementTypeText;
 }

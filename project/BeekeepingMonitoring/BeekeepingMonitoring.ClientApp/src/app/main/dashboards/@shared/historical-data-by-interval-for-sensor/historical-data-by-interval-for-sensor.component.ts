@@ -46,6 +46,7 @@ import {
 } from "../../../@shared/charts/pipes/transform-bar-chart";
 import {catchError} from "rxjs/operators";
 import {BarChartInterface} from "../../../@shared/charts/components/bar-chart-interface";
+import {getDashboardMeasurementTypeText} from "../dashboard-sensor-measurement-type";
 
 interface SelectionFormInterface {
   startDate: FormControl<Date | null>;
@@ -280,4 +281,5 @@ export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDes
     this.fetchData();
   }
 
+    protected readonly getDashboardMeasurementTypeText = getDashboardMeasurementTypeText;
 }

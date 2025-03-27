@@ -34,6 +34,8 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
   private seriesMap: Map<string, am5xy.LineSeries> = new Map();
 
   @Input() jsonData!: any[];
+  @Input() xAxisTitle!: string;
+  @Input() yAxisTitle!: string;
 
   constructor(private readonly elementRef: ElementRef<HTMLElement>) {}
 
@@ -75,34 +77,40 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
       })
     );
 
-    let xAxis = chart.xAxes.push(
-      am5xy.DateAxis.new(this.root, {
-        maxDeviation: 0.1,
-        groupData: false,
-        baseInterval: {
-          timeUnit: "second",
-          count: 1
-        },
-        renderer: am5xy.AxisRendererX.new(this.root, {
-          minGridDistance: 80,
-          minorGridEnabled: true
-        }),
-        tooltip: am5.Tooltip.new(this.root, {})
-      })
-    );
+    let xAxis = chart.xAxes.push(am5xy.DateAxis.new(this.root, {
+      maxDeviation: 0.5,
+      extraMin: -0.1,
+      extraMax: 0.1,
+      groupData: false,
+      baseInterval: {
+        timeUnit: "second",
+        count: 1
+      },
+      renderer: am5xy.AxisRendererX.new(this.root, {
+        minorGridEnabled: true,
+        minGridDistance: 60
+      }),
+      tooltip: am5.Tooltip.new(this.root, {})
+    }));
 
-    // Create series for each sensor in jsonData
+    let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(this.root, {
+      renderer: am5xy.AxisRendererY.new(this.root, {}),
+    }));
+
+
+
+
     this.jsonData.forEach((sensorData, index) => {
       let opposite = index % 2 !== 0;
       let yRenderer = am5xy.AxisRendererY.new(this.root!, {
         opposite: opposite
       });
-      let yAxis:any;
+
       if (this.root instanceof Root) {
         yAxis = chart.yAxes.push(
           am5xy.ValueAxis.new(this.root, {
             maxDeviation: 1,
-            renderer: yRenderer
+            renderer: yRenderer,
           })
         );
       }
@@ -111,7 +119,7 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
         yAxis.set("syncWithAxis", chart.yAxes.getIndex(0) as am5xy.ValueAxis<typeof yRenderer>);
       }
 
-      let series:any;
+      let series: any;
       if (this.root instanceof Root) {
         series = chart.series.push(
           am5xy.LineSeries.new(this.root, {
@@ -120,23 +128,37 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
             valueYField: "value",
             valueXField: "date",
             tooltip: am5.Tooltip.new(this.root, {
-              pointerOrientation: "horizontal",
               labelText: "{valueY}"
             })
           })
         );
       }
 
-      series.strokes.template.setAll({ strokeWidth: 1 });
+      // Add bullets (data points)
+      series.bullets.push(() =>
+        am5.Bullet.new(this.root!, {
+          sprite: am5.Circle.new(this.root!, {
+            radius: 5, // Bullet size
+            fill: series.get("fill"),
+            strokeWidth: 2,
+            stroke: this.root!.interfaceColors.get("background")
+          })
+        })
+      );
 
+
+      // Style adjustments
+      series.strokes.template.setAll({ strokeWidth: 2 });
       yRenderer.grid.template.set("strokeOpacity", 0.05);
       yRenderer.labels.template.set("fill", series.get("fill"));
+      yRenderer.template?.set("tooltip",am5.Tooltip.new(this.root!, {}))
       yRenderer.setAll({
         stroke: series.get("fill"),
         strokeOpacity: 1,
         opacity: 1
       });
 
+      // Data processor for date format
       if (this.root instanceof Root) {
         series.data.processor = am5.DataProcessor.new(this.root, {
           dateFormat: "yyyy-MM-dd HH:mm:ss",
@@ -146,6 +168,31 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
 
       this.seriesMap.set(sensorData.name, series);
     });
+
+    // Add title to X Axis
+    xAxis.children.push(am5.Label.new(this.root, {
+      text: this.xAxisTitle,
+      fontSize: 14,
+      fontWeight: "bold",
+      fill: am5.color(0x000000),
+      textAlign: "center",
+      x: am5.percent(50),
+      centerX: am5.percent(50),
+      paddingTop: 10
+    }));
+
+// Add title to Y Axis
+    yAxis.children.push(am5.Label.new(this.root, {
+      text: this.yAxisTitle,
+      fontSize: 14,
+      fontWeight: "bold",
+      fill: am5.color(0x000000),
+      rotation: -90,
+      textAlign: "center",
+      y: am5.percent(50),
+      centerY: am5.percent(50),
+      paddingRight: 10
+    }));
 
     // Add cursor
     chart.set("cursor", am5xy.XYCursor.new(this.root, {
@@ -169,7 +216,7 @@ export class LiveLineChartComponent implements AfterViewInit, OnChanges, OnDestr
     if (!this.root) {
       return;
     }
-
+    console.log(this.jsonData)
     this.jsonData.forEach((sensorData) => {
       let series = this.seriesMap.get(sensorData.name);
       if (series) {

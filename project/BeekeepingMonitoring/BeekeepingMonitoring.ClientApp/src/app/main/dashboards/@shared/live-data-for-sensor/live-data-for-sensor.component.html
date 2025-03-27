@@ -43,7 +43,10 @@
   <div *ngIf="!isLoading() && !hasError()">
       <p-card
         header="Live Data">
-        <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"></app-live-line-chart>
+        <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"
+        yAxisTitle="Value({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+        xAxisTitle="Date Time"
+        ></app-live-line-chart>
       </p-card>
   </div>
 

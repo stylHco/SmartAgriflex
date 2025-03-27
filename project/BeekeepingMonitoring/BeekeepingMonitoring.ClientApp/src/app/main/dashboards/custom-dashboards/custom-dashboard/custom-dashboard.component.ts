@@ -62,13 +62,10 @@ initialized=false;
         autoMarkForCheck(this.cd)
       )
       .subscribe(data => {
-        console.log((data))
         this.data = transformDoubleLineData(data);
         this.initialized = true
         // console.log(transformDoubleLineData(data))
       })
-
-
   }
 
   protected readonly DashboardIntervalTypeEnum = DashboardIntervalTypeEnum;

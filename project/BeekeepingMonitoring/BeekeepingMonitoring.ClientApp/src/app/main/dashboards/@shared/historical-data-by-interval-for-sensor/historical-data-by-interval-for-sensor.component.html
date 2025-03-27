@@ -54,7 +54,10 @@
   <div *ngIf="!isLoading() && !hasError()">
     <section class="mt-8">
       <p-card>
-        <app-bar-chart [data]="transformedData"></app-bar-chart>
+        <app-bar-chart [data]="transformedData"
+                       yAxisTitle="Value({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+                       xAxisTitle="Date Time"
+        ></app-bar-chart>
       </p-card>
     </section>
   </div>
