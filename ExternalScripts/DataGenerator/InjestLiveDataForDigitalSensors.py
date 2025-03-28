@@ -2,7 +2,7 @@ import pyodbc
 import random
 import time
 from datetime import datetime
-
+import pytz
 
 # SQL Server Configuration
 SERVER = 'p3nwplsk12sql-v17.shr.prod.phx3.secureserver.net'
@@ -53,9 +53,13 @@ try:
 
     print(f"Found {len(sensors)} valid sensors. Starting data insertion every 1 minute...")
 
+    # Set Cyprus time zone
+    cyprus_tz = pytz.timezone('Asia/Nicosia')
+
     while True:  # Infinite loop to keep inserting data every minute
         records = []
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # Get the current time in Cyprus time zone
+        current_time = datetime.now(cyprus_tz).strftime('%Y-%m-%d %H:%M:%S')
 
         for sensor_id, sensor_name in sensors:
             min_val, max_val = VALID_SENSORS[sensor_name]

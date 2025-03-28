@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  sensor_data_generator:
+    build: .
+    container_name: sensor_data
+    restart: always
