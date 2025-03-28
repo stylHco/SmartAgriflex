@@ -1,24 +1,24 @@
-# BeekeepingMonitoring
+# SmartAgriFlex
 
 # Development environment
 
 ## Rider
 
-Load `BeekeepingMonitoring.sln`. Once it's loaded, make sure that the run/debug widget top/right (assuming default UI layout)
+Load `SmartAgriFlex.sln`. Once it's loaded, make sure that the run/debug widget top/right (assuming default UI layout)
 is populated with 3 options:
 
-* `BeekeepingMonitoring.SpaBackend: http`
-* `BeekeepingMonitoring.SpaBackend: https`
-* `BeekeepingMonitoring.ClientApp: start`
+* `SmartAgriFlex.SpaBackend: http`
+* `SmartAgriFlex.SpaBackend: https`
+* `SmartAgriFlex.ClientApp: start`
 
 If any other options are present, remove them (using the Edit Configurations option). In case
-`BeekeepingMonitoring.ClientApp: start` is missing, you will need to add it manually:
+`SmartAgriFlex.ClientApp: start` is missing, you will need to add it manually:
 
 1) Edit Configuration
 2) Click on plus
 3) Select npm
 4) Fill in the fields:
-   * Package json: `BeekeepingMonitoring\BeekeepingMonitoring.ClientApp\package.json`
+   * Package json: `SmartAgriFlex\SmartAgriFlex.ClientApp\package.json`
    * Command: start
 
 Once the run configurations are configured, you will need to setup the run/debug widget.

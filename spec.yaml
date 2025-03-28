@@ -1,6 +1,6 @@
-﻿namespace: BeekeepingMonitoring.SpaBackend
-backend_path: BeekeepingMonitoring.SpaBackend
-client_app_path: BeekeepingMonitoring.ClientApp
+﻿namespace: SmartAgriFlex.SpaBackend
+backend_path: SmartAgriFlex.SpaBackend
+client_app_path: SmartAgriFlex.ClientApp
 entities:
   Article:
     key: Id
