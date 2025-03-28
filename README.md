@@ -24,7 +24,7 @@ Smart AgriFlex is a platform that was design to simplify the use of advance tech
 
 
 To set up the SmartAgriflex you need to have one IDE of your choice.
-(I am using Rider for the examples below). To take advantage of the full capabilities of the project make sure that you have python installed to run the python script for simulating live data injestion
+(I am using Rider for the examples below). To take advantage of the full capabilities of the project make sure that you have python installed to run the python script for simulating live data ingestion
 
 
 # The Set Up
@@ -87,5 +87,74 @@ Once both processes are running, open the URL that's printed in the **ClientApp'
 
 >  # ***Additional Scripts***
 
+Under `SmartAgriflex/DataManagementInfrastructure` you can find the two files that assembles the UI and the Infrastructure  that accepts post request and inserts the correct data from each device to the database.
+Both codes are written in php
 
-## Run the python script for ingest data
+---
+
+## Run the python script for ingest live data
+
+Under `SmartAgriflex/DataGenerator` you can find a docker compose file and two python files. Those files simulate data ingestion for all the virtual devices and their sensors by ingest data with one minute interval
+
+- The first python file `InjestLiveDataForDigitalSensorsDirectlyToDB.py` ingest data directly to the database for the virtual devices. Uses PYODBC driver that is tricky to install especially on a Mac.
+- The second python file `InjestLiveDataForDigitalSensorsThroughCustomAPI` simulates all the virtual devices sending the data as post request.
+
+To run the Script for live data ingestion i suggest to go with the second script
+The steps are simple:
+
+- navigate to `SmartAgriflex/DataGenerator` using the terminal
+
+``` 
+ cd SmartAgriflex/DataGenerator
+```
+
+- run the following command in terminal and will generate everything for you.
+
+
+``` 
+ docker-compose up --build
+```
+
+This will build the Docker image, install dependencies, and run the script.
+You can see in the terminal all the JSON objects being sent as POST requests to the custom domain.
+
+### ***MakeSure that you terminate the code when you are done***
+
+```
+docker-compose stop
+```
+
+just stops the process
+
+---
+
+
+```
+docker-compose down
+```
+
+stops the process and delete all the docker containers
+
+---
+
+
+
+---
+
+### For anyone that want to run data ingestion directly to the DataBase
+
+If you are familiar with the pyodbc package and want to use this approach you can just run the `InjestLiveDataForDigitalSensorsDirectlyToDB.py` code directly in terminal or in an IDE like PyCharm from jetbrains  
+
+```
+cd SmartAgriflex/DataGenerator
+```
+
+---
+
+```
+py InjestLiveDataForDigitalSensorsDirectlyToDB.py
+```
+
+
+***
+***
