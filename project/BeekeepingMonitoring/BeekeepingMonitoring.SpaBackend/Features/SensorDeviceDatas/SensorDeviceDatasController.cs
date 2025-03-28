@@ -236,99 +236,130 @@ public partial class SensorDeviceDatasController : ControllerBase
     [HttpGet("get-for-sensor/{sensorIdStr}/{deviceIdStr}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<FullDetailsModel>>> GetForSensor(string sensorIdStr, string deviceIdStr)
+    public async Task<ActionResult<List<LiveDataFullDetailsModel>>> GetForSensor(string sensorIdStr, string deviceIdStr = "all")
     {
-        var sensorIdStrings = sensorIdStr.Split(',');
-        var deviceIdStrings = deviceIdStr.Split(',');
+        var selectedSensor = await _dbContext.Sensors
+            .Where(s => s.Id == int.Parse(sensorIdStr))
+            .SingleOrDefaultAsync();
 
-        // Try parsing the sensor IDs
-        if (!sensorIdStrings.All(s => int.TryParse(s, out _)))
+        if (selectedSensor == null)
         {
-            return BadRequest("One or more Sensor IDs are not valid integers.");
+            return BadRequest("Sensor is invalid.");
         }
 
-        // Try parsing the device IDs
-        if (!deviceIdStrings.All(d => int.TryParse(d, out _)))
-        {
-            return BadRequest("One or more Device IDs are not valid integers.");
-        }
+        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(5));
 
-        // Convert to integer arrays
-        int[] sensorIdArray = sensorIdStrings.Select(int.Parse).ToArray();
-        int[] deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
-
-        // Base query with INNER JOINs
         IQueryable<SensorDeviceData> query = _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
             .ThenInclude(sd => sd.Sensor)
             .Include(sd => sd.SensorDevice)
-            .ThenInclude(sd => sd.Device);
+            .ThenInclude(sd => sd.Device)
+            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id
+                         && sd.Value != null
+                         && sd.RecordDate > now
+            );
 
-        // Check if at least one of the arrays is provided and non-empty
-        if ((sensorIdArray == null || sensorIdArray.Length == 0) &&
-            (deviceIdArray == null || deviceIdArray.Length == 0))
+        bool includeAllDevices = false;
+        int[] deviceIdArray = null;
+
+        // Parse device IDs from input
+        if (!string.IsNullOrWhiteSpace(deviceIdStr))
         {
-            return BadRequest("At least one sensor ID or device ID must be provided.");
+            var deviceIds = deviceIdStr.Split(',')
+                .Select(id => id.Trim().ToLower())
+                .ToArray();
+
+            includeAllDevices = deviceIds.Contains("all");
+            deviceIdArray = deviceIds
+                .Where(id => id != "all") // Exclude "all" from device ID array
+                .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToArray();
         }
 
-        // Validate and filter by sensor IDs
-        if (sensorIdArray != null && sensorIdArray.Length > 0)
-        {
-            var validSensorIds = await _dbContext.Sensors
-                .Where(s => sensorIdArray.Contains(s.Id))
-                .Select(s => s.Id)
-                .ToListAsync();
-
-            if (validSensorIds.Count != sensorIdArray.Length)
-            {
-                return BadRequest("One or more Sensor IDs are invalid.");
-            }
-
-            query = query.Where(sd => sensorIdArray.Contains(sd.SensorDevice.Sensor.Id));
-        }
-
-        // Validate and filter by device IDs
-        if (deviceIdArray != null && deviceIdArray.Length > 0)
-        {
-            var validDeviceIds = await _dbContext.Devices
-                .Where(d => deviceIdArray.Contains(d.Id))
-                .Select(d => d.Id)
-                .ToListAsync();
-
-            if (validDeviceIds.Count != deviceIdArray.Length)
-            {
-                return BadRequest("One or more Device IDs are invalid.");
-            }
-
-            query = query.Where(sd => deviceIdArray.Contains(sd.SensorDevice.Device.Id));
-        }
-
-        // Fetch the data
-        var sensorData = await query
-            .OrderByDescending(sd => sd.RecordDate)
-            .Take(100)
+        // Get valid device IDs from the database
+        var validDeviceIds = await _dbContext.Devices
+            .Where(d => deviceIdArray.Contains(d.Id))
+            .Select(d => d.Id)
             .ToListAsync();
 
-        if (!sensorData.Any())
+        if (deviceIdArray != null && validDeviceIds.Count != deviceIdArray.Length)
         {
-            return NotFound();
+            return BadRequest("There is a non-valid device ID.");
         }
 
-        List<decimal> recentValues = sensorData
-            .Where(sd => sd.Value != null)       // Filter out nulls first
-            .Select(sd => sd.Value.Value)         // Then select non-null decimal values
+        var deviceSensorData = query
+            .Where(sd => validDeviceIds.Contains(sd.SensorDevice.Device.Id))
+            .OrderByDescending(sd => sd.RecordDate)
+            .AsEnumerable()
+            .GroupBy(sd => sd.SensorDevice.Device.Id)
+            .SelectMany(g => g.Take(10)) // Get latest 10 per device
             .ToList();
-        
-        var calculatedStatistics = CalculateStatistics(recentValues);
 
-        var result = sensorData.Select(sd => new FullDetailsModel
+        // If no data found
+        if (!deviceSensorData.Any() && !includeAllDevices)
         {
-            Id = sd.Id,
-            SensorDevice = sd.SensorDevice,
-            Value = sd.Value,
-            RecordDate = sd.RecordDate,
-            Statistics = calculatedStatistics
-        }).ToList();
+            return BadRequest("There is no data for the selected sensor and devices");
+        }
+
+        List<FullDetailsModel> result = new List<FullDetailsModel>();
+
+        if (deviceSensorData.Any())
+        {
+            result = deviceSensorData.Select(sd => new FullDetailsModel
+            {
+                Id = sd.Id,
+                SensorDevice = sd.SensorDevice,
+                Value = sd.Value,
+                RecordDate = sd.RecordDate
+            }).ToList();
+        }
+
+        if (includeAllDevices)
+        {
+            deviceSensorData = query
+                .OrderByDescending(sd => sd.RecordDate)
+                .AsEnumerable()
+                .Take(10)
+                .ToList();
+            
+            
+            var sensorData = deviceSensorData
+                .AsEnumerable()
+                .GroupBy(s => new
+                {
+                    Year = s.RecordDate.Year,
+                    Month = s.RecordDate.Month,
+                    Day = s.RecordDate.Day,
+                    Hour = s.RecordDate.Hour,
+                    Minute = s.RecordDate.Minute,
+                    Second = s.RecordDate.Second,
+                })
+                .Select(g => new
+                {
+                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, g.Key.Minute, 0),
+                    AvgValue = g.Average(a => a.Value ?? 0),
+                })
+                .Take(10)
+                .ToList();
+
+
+            if (!sensorData.Any())
+            {
+                return BadRequest("There is no data for the selected sensor.");
+            }
+
+            var avgResult = sensorData.Select(sd => new FullDetailsModel()
+            {
+                Id = 0,
+                SensorDevice = null,
+                Value = sd.AvgValue,
+                RecordDate = sd.TimePeriod,
+            }).ToList();
+
+            result.AddRange(avgResult);
+        }
 
         return Ok(result);
     }
@@ -424,135 +455,17 @@ public class SensorDateStatistics
     public decimal Avg { get; set; }
 }
 
-    // public async Task<ActionResult<List<FullDetailsModel>>> GetSensor(string sensorIdStr, string deviceIdStr)
-    // {
-    //     // Handle null or empty strings for sensorIdStr and deviceIdStr
-    //     var sensorIdStrings = string.IsNullOrEmpty(sensorIdStr) ? Array.Empty<string>() : sensorIdStr.Split(',');
-    //     var deviceIdStrings = string.IsNullOrEmpty(deviceIdStr) ? Array.Empty<string>() : deviceIdStr.Split(',');
-    //
-    //     // Try parsing the sensor IDs
-    //     if (!sensorIdStrings.All(s => int.TryParse(s, out _)))
-    //     {
-    //         return BadRequest("One or more Sensor IDs are not valid integers.");
-    //     }
-    //
-    //     // Try parsing the device IDs
-    //     if (!deviceIdStrings.All(d => int.TryParse(d, out _)))
-    //     {
-    //         return BadRequest("One or more Device IDs are not valid integers.");
-    //     }
-    //
-    //     // Convert to integer arrays
-    //     int[] sensorIdArray = sensorIdStrings.Select(int.Parse).ToArray();
-    //     int[] deviceIdArray = deviceIdStrings.Select(int.Parse).ToArray();
-    //
-    //     // Check if at least one of the arrays is provided and non-empty
-    //     if ((sensorIdArray.Length == 0) && (deviceIdArray.Length == 0))
-    //     {
-    //         return BadRequest("At least one sensor ID or device ID must be provided.");
-    //     }
-    //
-    //     // Base query with INNER JOINs
-    //     IQueryable<SensorData> query = _dbContext.SensorsData
-    //         .Include(sd => sd.SensorDevice)
-    //         .ThenInclude(sd => sd.Sensor)
-    //         .Include(sd => sd.SensorDevice)
-    //         .ThenInclude(sd => sd.Device);
-    //
-    //     // Apply filters based on the provided sensorId and deviceId arrays
-    //     if (sensorIdArray.Length > 0)
-    //     {
-    //         query = query.Where(sd => sensorIdArray.Contains(sd.SensorDevice.SensorId));
-    //     }
-    //
-    //     if (deviceIdArray.Length > 0)
-    //     {
-    //         query = query.Where(sd => deviceIdArray.Contains(sd.SensorDevice.DeviceId));
-    //     }
-    //
-    //     // Fetch the data
-    //     var sensorData = await query
-    //         .Take(100)
-    //         .OrderByDescending(sd => sd.RecordDate)
-    //         .ToListAsync();
-    //
-    //     if (!sensorData.Any())
-    //     {
-    //         return NotFound();
-    //     }
-    //
-    //     var recentValues = sensorData.Select(sd => sd.Value).ToList();
-    //     var calculatedStatistics = CalculateStatistics(recentValues);
-    //
-    //     var models = sensorData.Select(sd => new FullDetailsModel
-    //     {
-    //         Id = sd.Id,
-    //         SensorDevice = sd.SensorDevice,
-    //         Value = sd.Value,
-    //         RecordDate = sd.RecordDate,
-    //         Statistics = calculatedStatistics
-    //     }).ToList();
-    //
-    //     return Ok(models);
-    // }
-
-    // [HttpGet("get-for-sensor-top-one/{sensorId?}/{deviceId?}")]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status404NotFound)]
-    // public async Task<ActionResult<FullDetailsModel>> GetForSensorTopOne(int? sensorId, int? deviceId)
-    // {
-    //     // Start with the base query
-    //     IQueryable<SensorData> query = _dbContext.SensorsData
-    //         .Include(sd => sd.SensorDevice)
-    //         .ThenInclude(sd => sd.Sensor)
-    //         .Include(sd => sd.SensorDevice)
-    //         .ThenInclude(sd => sd.Device);
-    //
-    //     // Apply filters based on the presence of sensorId and deviceId
-    //     if (sensorId.HasValue)
-    //     {
-    //         query = query.Where(sd => sd.SensorDevice.SensorId == sensorId.Value);
-    //     }
-    //     if (deviceId.HasValue)
-    //     {
-    //         query = query.Where(sd => sd.SensorDevice.Device.Id == deviceId.Value);
-    //     }
-    //
-    //     // Fetch the data
-    //     var sensorData = await query
-    //         .OrderBy(sd => sd.RecordDate)
-    //         .ToListAsync();
-    //
-    //     // Return 404 if no data found
-    //     if (!sensorData.Any())
-    //     {
-    //         return NotFound();
-    //     }
-    //
-    //     // Select the most recent sensor data entry
-    //     var topSensorData = sensorData.Last(); // As it's ordered by RecordDate ascending
-    //
-    //     var model = new FullDetailsModel
-    //     {
-    //         Id = topSensorData.Id,
-    //         SensorDevice = topSensorData.SensorDevice,
-    //         Value = topSensorData.Value,
-    //         RecordDate = topSensorData.RecordDate
-    //     };
-    //
-    //     // Fetch all values for the given sensor up to the top sensor data's record date
-    //     var valuesForStatistics = await query
-    //         .Where(sd => sd.RecordDate <= topSensorData.RecordDate)
-    //         .OrderByDescending(sd => sd.RecordDate)
-    //         .Select(sd => sd.Value)
-    //         .ToListAsync();
-    //
-    //     // Calculate statistics for the model
-    //     model.CalculateStatistics(valuesForStatistics);
-    //
-    //     return Ok(model);
-    // }
-
+    [JsonSchema(Name = "SensorsLiveDataFullDetailsModel")]
+    public class LiveDataFullDetailsModel
+    {
+        public int Id { get; set; }
+        public SensorDevice SensorDevice { get; set; } = null!;
+        public int SensorDeviceId { get; set; }
+        public decimal? Value { get; set; }
+        public LocalDateTime RecordDate { get; set; }
+        public Statistics? Statistics { get; set; }
+    }
+    
     [JsonSchema(Name = "SensorsDataFullDetailsModel")]
     public class FullDetailsModel
     {

@@ -25,6 +25,9 @@ export type BarChartOptions = {
   enableLegend?: boolean;
 
   label?: TopLabelOptions;
+
+  color?: am5.Color;
+
 }
 
 export type BarChartSeriesOptions = {
@@ -32,6 +35,8 @@ export type BarChartSeriesOptions = {
 
   descriptorName: string;
   displayName?: string;
+
+  color?: am5.Color;
 };
 
 function getSeriesOptions(xyContext: XyCommonChartContext, options: BarChartOptions): BarChartSeriesOptions[] {
@@ -68,6 +73,7 @@ export function configureBarChart(wrapper: ICommonChartWrapper, options: BarChar
       isStacked: isStacked,
 
       defaultTooltip: seriesOptions.length === 1,
+      color: seriesOption.color,
     });
   }
 
@@ -87,6 +93,8 @@ export type IndividualBarSeriesOptions = XyCommonSeriesOptions & {
   columnWidth?: number | am5.Percent;
 
   defaultTooltip?: boolean;
+
+  color?: am5.Color;
 };
 
 export function configureBarSeries(
@@ -104,6 +112,9 @@ export function configureBarSeries(
 
     clustered: !isLayered,
     stacked: isStacked,
+
+    fill: options.color ?? am5.color(0x6794dc),
+    stroke: options.color ?? am5.color(0x6794dc),
   });
 
   // TODO: same for line?

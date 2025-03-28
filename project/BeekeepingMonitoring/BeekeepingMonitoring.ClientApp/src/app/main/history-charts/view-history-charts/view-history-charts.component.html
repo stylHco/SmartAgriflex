@@ -1,13 +1,15 @@
+<ng-container *transloco="let t">
+
 <section>
   <div class="selection">
-    <h2 class="mb-2">Please select one of the Available Sensors or Available Devices</h2>
+    <h2 class="mb-2">{{ t('historyChart.header1') }}</h2>
     <form class="p-fluid"
           [formGroup]="form" (ngSubmit)="submitForm()"
           lossMonitor [lossRouteFilter]="activatedRoute">
       <div class="grid">
         <div class="field col-12 md:col-6">
           <label>
-            Sensor
+            {{ t('historyChart.fields.sensor') }}
             <app-required-field-indicator></app-required-field-indicator>
           </label>
 
@@ -23,7 +25,7 @@
         </div>
         <div class="field col-12 md:col-6">
           <label>
-            Device
+            {{ t('historyChart.fields.device') }}
             <app-required-field-indicator></app-required-field-indicator>
           </label>
 
@@ -41,7 +43,7 @@
       <div>
         <button type="submit" [disabled]="!form.valid"
                 pButton class="p-button-success not-fluid">
-          Select
+          {{ t('historyChart.button') }}
         </button>
       </div>
     </form>
@@ -51,7 +53,7 @@
 @if (showChart) {
   <section>
     <div class="selection">
-      <h2 class="mb-2">Please select which series you want to see</h2>
+      <h2 class="mb-2">{{ t('historyChart.header2') }}</h2>
       <form [formGroup]="selectSeriesForm" class="p-fluid">
         <div class="field">
           <p-multiSelect
@@ -80,3 +82,4 @@
     </p-card>
   </section>
 }
+</ng-container>

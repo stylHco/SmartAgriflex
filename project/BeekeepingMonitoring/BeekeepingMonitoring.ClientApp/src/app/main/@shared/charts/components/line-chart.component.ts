@@ -49,6 +49,9 @@ export class LineChartComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.disposeChart();
   }
 
+
+  // The code here is inspired from am5 charts
+  // the code can be found here https://www.amcharts.com/demos/line-graph/
   generateChart() {
     this.disposeChart();
     // Create root element

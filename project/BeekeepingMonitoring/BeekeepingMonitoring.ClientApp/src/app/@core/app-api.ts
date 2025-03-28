@@ -1306,7 +1306,7 @@ export class SensorDeviceDatasClient {
         return _observableOf(null as any);
     }
 
-    getForSensor(sensorIdStr: string, deviceIdStr: string): Observable<SensorsDataFullDetailsModel[]> {
+    getForSensor(sensorIdStr: string, deviceIdStr: string): Observable<SensorsLiveDataFullDetailsModel[]> {
         let url_ = this.baseUrl + "/_api/sensor-device-datas/get-for-sensor/{sensorIdStr}/{deviceIdStr}";
         if (sensorIdStr === undefined || sensorIdStr === null)
             throw new Error("The parameter 'sensorIdStr' must be defined.");
@@ -1331,14 +1331,14 @@ export class SensorDeviceDatasClient {
                 try {
                     return this.processGetForSensor(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<SensorsDataFullDetailsModel[]>;
+                    return _observableThrow(e) as any as Observable<SensorsLiveDataFullDetailsModel[]>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<SensorsDataFullDetailsModel[]>;
+                return _observableThrow(response_) as any as Observable<SensorsLiveDataFullDetailsModel[]>;
         }));
     }
 
-    protected processGetForSensor(response: HttpResponseBase): Observable<SensorsDataFullDetailsModel[]> {
+    protected processGetForSensor(response: HttpResponseBase): Observable<SensorsLiveDataFullDetailsModel[]> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -1352,7 +1352,7 @@ export class SensorDeviceDatasClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(SensorsDataFullDetailsModel.fromJS(item));
+                    result200!.push(SensorsLiveDataFullDetailsModel.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -2688,6 +2688,619 @@ export class ConfigurableDashboardClient {
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result400 = ProblemDetails.fromJS(resultData400);
             return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class CustomDashboardClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(APP_API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ?? "http://localhost:33395";
+    }
+
+    getLiveDataForSensor(sensorTypeEnum: DashboardSensorTypeEnum | undefined, deviceIdStr: string | undefined): Observable<CustomDashboardDataFullDetailsModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/live-data-for-sensor?";
+        if (sensorTypeEnum === null)
+            throw new Error("The parameter 'sensorTypeEnum' cannot be null.");
+        else if (sensorTypeEnum !== undefined)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
+        if (deviceIdStr === null)
+            throw new Error("The parameter 'deviceIdStr' cannot be null.");
+        else if (deviceIdStr !== undefined)
+            url_ += "deviceIdStr=" + encodeURIComponent("" + deviceIdStr) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetLiveDataForSensor(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetLiveDataForSensor(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomDashboardDataFullDetailsModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomDashboardDataFullDetailsModel[]>;
+        }));
+    }
+
+    protected processGetLiveDataForSensor(response: HttpResponseBase): Observable<CustomDashboardDataFullDetailsModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CustomDashboardDataFullDetailsModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getLiveGaugeAllDevicesAverage(sensorTypeEnum: DashboardSensorTypeEnum | undefined): Observable<number> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/get-live-gauge?";
+        if (sensorTypeEnum === null)
+            throw new Error("The parameter 'sensorTypeEnum' cannot be null.");
+        else if (sensorTypeEnum !== undefined)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetLiveGaugeAllDevicesAverage(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetLiveGaugeAllDevicesAverage(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<number>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<number>;
+        }));
+    }
+
+    protected processGetLiveGaugeAllDevicesAverage(response: HttpResponseBase): Observable<number> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getLiveGaugeDevicesAverage(sensorTypeEnum: DashboardSensorTypeEnum | undefined, deviceIdStr: string | null | undefined): Observable<GaugeWithRulesModel> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/get-live-gauge-for-device?";
+        if (sensorTypeEnum === null)
+            throw new Error("The parameter 'sensorTypeEnum' cannot be null.");
+        else if (sensorTypeEnum !== undefined)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
+        if (deviceIdStr !== undefined && deviceIdStr !== null)
+            url_ += "deviceIdStr=" + encodeURIComponent("" + deviceIdStr) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetLiveGaugeDevicesAverage(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetLiveGaugeDevicesAverage(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<GaugeWithRulesModel>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<GaugeWithRulesModel>;
+        }));
+    }
+
+    protected processGetLiveGaugeDevicesAverage(response: HttpResponseBase): Observable<GaugeWithRulesModel> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GaugeWithRulesModel.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getDataForSensor(inputModel: GetDataForSensorInputModel): Observable<SensorDataFullDetailsModelWithRules[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/get-data-for-sensor";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(inputModel);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetDataForSensor(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetDataForSensor(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<SensorDataFullDetailsModelWithRules[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<SensorDataFullDetailsModelWithRules[]>;
+        }));
+    }
+
+    protected processGetDataForSensor(response: HttpResponseBase): Observable<SensorDataFullDetailsModelWithRules[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SensorDataFullDetailsModelWithRules.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getYtdComparisonForSensor(sensorTypeEnum: DashboardSensorTypeEnum | undefined, year1: number | undefined, year2: number | undefined): Observable<MonthlySensorComparison[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/get-ytd-comparison-for-sensor?";
+        if (sensorTypeEnum === null)
+            throw new Error("The parameter 'sensorTypeEnum' cannot be null.");
+        else if (sensorTypeEnum !== undefined)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
+        if (year1 === null)
+            throw new Error("The parameter 'year1' cannot be null.");
+        else if (year1 !== undefined)
+            url_ += "year1=" + encodeURIComponent("" + year1) + "&";
+        if (year2 === null)
+            throw new Error("The parameter 'year2' cannot be null.");
+        else if (year2 !== undefined)
+            url_ += "year2=" + encodeURIComponent("" + year2) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetYtdComparisonForSensor(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetYtdComparisonForSensor(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<MonthlySensorComparison[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<MonthlySensorComparison[]>;
+        }));
+    }
+
+    protected processGetYtdComparisonForSensor(response: HttpResponseBase): Observable<MonthlySensorComparison[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(MonthlySensorComparison.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getLiveData(sensorIdStr: string | undefined, deviceIdStr: string | undefined): Observable<CustomDashboardDataFullDetailsModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/live-data?";
+        if (sensorIdStr === null)
+            throw new Error("The parameter 'sensorIdStr' cannot be null.");
+        else if (sensorIdStr !== undefined)
+            url_ += "sensorIdStr=" + encodeURIComponent("" + sensorIdStr) + "&";
+        if (deviceIdStr === null)
+            throw new Error("The parameter 'deviceIdStr' cannot be null.");
+        else if (deviceIdStr !== undefined)
+            url_ += "deviceIdStr=" + encodeURIComponent("" + deviceIdStr) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetLiveData(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetLiveData(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomDashboardDataFullDetailsModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomDashboardDataFullDetailsModel[]>;
+        }));
+    }
+
+    protected processGetLiveData(response: HttpResponseBase): Observable<CustomDashboardDataFullDetailsModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CustomDashboardDataFullDetailsModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    filterDevices(sensorIdStr: string | null | undefined, sensorTypeEnum: DashboardSensorTypeEnum | null | undefined): Observable<DeviceReferenceModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/filter-devices?";
+        if (sensorIdStr !== undefined && sensorIdStr !== null)
+            url_ += "sensorIdStr=" + encodeURIComponent("" + sensorIdStr) + "&";
+        if (sensorTypeEnum !== undefined && sensorTypeEnum !== null)
+            url_ += "sensorTypeEnum=" + encodeURIComponent("" + sensorTypeEnum) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processFilterDevices(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processFilterDevices(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<DeviceReferenceModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<DeviceReferenceModel[]>;
+        }));
+    }
+
+    protected processFilterDevices(response: HttpResponseBase): Observable<DeviceReferenceModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DeviceReferenceModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    filterSensor(deviceIdStr: string | undefined): Observable<SensorReferenceModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/filter-sensors?";
+        if (deviceIdStr === null)
+            throw new Error("The parameter 'deviceIdStr' cannot be null.");
+        else if (deviceIdStr !== undefined)
+            url_ += "deviceIdStr=" + encodeURIComponent("" + deviceIdStr) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processFilterSensor(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processFilterSensor(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<SensorReferenceModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<SensorReferenceModel[]>;
+        }));
+    }
+
+    protected processFilterSensor(response: HttpResponseBase): Observable<SensorReferenceModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SensorReferenceModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    getCustomRulesForSensor(sensorType: DashboardSensorTypeEnum | undefined): Observable<CustomRulesListModel[]> {
+        let url_ = this.baseUrl + "/_api/custom-dashboards/custom-rules-for-sensor?";
+        if (sensorType === null)
+            throw new Error("The parameter 'sensorType' cannot be null.");
+        else if (sensorType !== undefined)
+            url_ += "sensorType=" + encodeURIComponent("" + sensorType) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetCustomRulesForSensor(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetCustomRulesForSensor(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomRulesListModel[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomRulesListModel[]>;
+        }));
+    }
+
+    protected processGetCustomRulesForSensor(response: HttpResponseBase): Observable<CustomRulesListModel[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CustomRulesListModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return _observableOf(result200);
             }));
         } else if (status === 404) {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
@@ -4606,7 +5219,7 @@ export interface ISensorDeviceDataUpdateModel {
     recordDate: Date;
 }
 
-export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel {
+export class SensorsLiveDataFullDetailsModel implements ISensorsLiveDataFullDetailsModel {
     id!: number;
     sensorDevice!: SensorDevice;
     sensorDeviceId!: number;
@@ -4614,7 +5227,7 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
     recordDate!: Date;
     statistics!: SensorsDataStatistics | null;
 
-    constructor(data?: ISensorsDataFullDetailsModel) {
+    constructor(data?: ISensorsLiveDataFullDetailsModel) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4637,9 +5250,9 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
         }
     }
 
-    static fromJS(data: any): SensorsDataFullDetailsModel {
+    static fromJS(data: any): SensorsLiveDataFullDetailsModel {
         data = typeof data === 'object' ? data : {};
-        let result = new SensorsDataFullDetailsModel();
+        let result = new SensorsLiveDataFullDetailsModel();
         result.init(data);
         return result;
     }
@@ -4655,15 +5268,15 @@ export class SensorsDataFullDetailsModel implements ISensorsDataFullDetailsModel
         return data;
     }
 
-    clone(): SensorsDataFullDetailsModel {
+    clone(): SensorsLiveDataFullDetailsModel {
         const json = this.toJSON();
-        let result = new SensorsDataFullDetailsModel();
+        let result = new SensorsLiveDataFullDetailsModel();
         result.init(json);
         return result;
     }
 }
 
-export interface ISensorsDataFullDetailsModel {
+export interface ISensorsLiveDataFullDetailsModel {
     id: number;
     sensorDevice: SensorDevice;
     sensorDeviceId: number;
@@ -6258,6 +6871,421 @@ export interface IConfigurableDashboardTileUpdateModel {
     predefinedVisualizationOptions: PredefinedVisualizationTileOptions | null;
 }
 
+export class CustomDashboardDataFullDetailsModel implements ICustomDashboardDataFullDetailsModel {
+    id!: number;
+    sensorDevice!: SensorDevice | null;
+    value!: number | null;
+    recordDate!: Date;
+
+    constructor(data?: ICustomDashboardDataFullDetailsModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensorDevice = _data["sensorDevice"] ? SensorDevice.fromJS(_data["sensorDevice"]) : <any>null;
+            this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomDashboardDataFullDetailsModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomDashboardDataFullDetailsModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensorDevice"] = this.sensorDevice ? this.sensorDevice.toJSON() : <any>null;
+        data["value"] = this.value !== undefined ? this.value : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
+        return data;
+    }
+
+    clone(): CustomDashboardDataFullDetailsModel {
+        const json = this.toJSON();
+        let result = new CustomDashboardDataFullDetailsModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomDashboardDataFullDetailsModel {
+    id: number;
+    sensorDevice: SensorDevice | null;
+    value: number | null;
+    recordDate: Date;
+}
+
+export enum DashboardSensorTypeEnum {
+    Temperature = "Temperature",
+    Humidity = "Humidity",
+    WindSpeed = "WindSpeed",
+    WindDirection = "WindDirection",
+    Light = "Light",
+}
+
+export class GaugeWithRulesModel implements IGaugeWithRulesModel {
+    measurement!: number | null;
+    customRule!: CustomRule | null;
+
+    constructor(data?: IGaugeWithRulesModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.measurement = _data["measurement"] !== undefined ? _data["measurement"] : <any>null;
+            this.customRule = _data["customRule"] ? CustomRule.fromJS(_data["customRule"]) : <any>null;
+        }
+    }
+
+    static fromJS(data: any): GaugeWithRulesModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new GaugeWithRulesModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["measurement"] = this.measurement !== undefined ? this.measurement : <any>null;
+        data["customRule"] = this.customRule ? this.customRule.toJSON() : <any>null;
+        return data;
+    }
+
+    clone(): GaugeWithRulesModel {
+        const json = this.toJSON();
+        let result = new GaugeWithRulesModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IGaugeWithRulesModel {
+    measurement: number | null;
+    customRule: CustomRule | null;
+}
+
+export class CustomRule implements ICustomRule {
+    id!: number;
+    sensor!: Sensor;
+    sensorId!: number;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRule) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.sensor = new Sensor();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? Sensor.fromJS(_data["sensor"]) : new Sensor();
+            this.sensorId = _data["sensorId"] !== undefined ? _data["sensorId"] : <any>null;
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRule {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRule();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["sensorId"] = this.sensorId !== undefined ? this.sensorId : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRule {
+        const json = this.toJSON();
+        let result = new CustomRule();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRule {
+    id: number;
+    sensor: Sensor;
+    sensorId: number;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
+export class SensorDataFullDetailsModelWithRules implements ISensorDataFullDetailsModelWithRules {
+    sensor!: Sensor | null;
+    value!: number | null;
+    recordDate!: Date;
+    rule!: string;
+
+    constructor(data?: ISensorDataFullDetailsModelWithRules) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sensor = _data["sensor"] ? Sensor.fromJS(_data["sensor"]) : <any>null;
+            this.value = _data["value"] !== undefined ? _data["value"] : <any>null;
+            this.recordDate = _data["recordDate"] ? new Date(_data["recordDate"].toString()) : <any>null;
+            this.rule = _data["rule"] !== undefined ? _data["rule"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): SensorDataFullDetailsModelWithRules {
+        data = typeof data === 'object' ? data : {};
+        let result = new SensorDataFullDetailsModelWithRules();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["value"] = this.value !== undefined ? this.value : <any>null;
+        data["recordDate"] = this.recordDate ? this.recordDate.toISOString() : <any>null;
+        data["rule"] = this.rule !== undefined ? this.rule : <any>null;
+        return data;
+    }
+
+    clone(): SensorDataFullDetailsModelWithRules {
+        const json = this.toJSON();
+        let result = new SensorDataFullDetailsModelWithRules();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISensorDataFullDetailsModelWithRules {
+    sensor: Sensor | null;
+    value: number | null;
+    recordDate: Date;
+    rule: string;
+}
+
+export class GetDataForSensorInputModel implements IGetDataForSensorInputModel {
+    sensorTypeEnum!: DashboardSensorTypeEnum;
+    intervalTypeEnum!: DashboardIntervalTypeEnum;
+    startDate!: LocalDate;
+    endDate!: LocalDate;
+
+    constructor(data?: IGetDataForSensorInputModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sensorTypeEnum = _data["sensorTypeEnum"] !== undefined ? _data["sensorTypeEnum"] : <any>null;
+            this.intervalTypeEnum = _data["intervalTypeEnum"] !== undefined ? _data["intervalTypeEnum"] : <any>null;
+            this.startDate = _data["startDate"] ? LocalDate.parse(_data["startDate"].toString()) : <any>null;
+            this.endDate = _data["endDate"] ? LocalDate.parse(_data["endDate"].toString()) : <any>null;
+        }
+    }
+
+    static fromJS(data: any): GetDataForSensorInputModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new GetDataForSensorInputModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sensorTypeEnum"] = this.sensorTypeEnum !== undefined ? this.sensorTypeEnum : <any>null;
+        data["intervalTypeEnum"] = this.intervalTypeEnum !== undefined ? this.intervalTypeEnum : <any>null;
+        data["startDate"] = this.startDate ? this.startDate.toString() : <any>null;
+        data["endDate"] = this.endDate ? this.endDate.toString() : <any>null;
+        return data;
+    }
+
+    clone(): GetDataForSensorInputModel {
+        const json = this.toJSON();
+        let result = new GetDataForSensorInputModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IGetDataForSensorInputModel {
+    sensorTypeEnum: DashboardSensorTypeEnum;
+    intervalTypeEnum: DashboardIntervalTypeEnum;
+    startDate: LocalDate;
+    endDate: LocalDate;
+}
+
+export enum DashboardIntervalTypeEnum {
+    Hourly = "Hourly",
+    Daily = "Daily",
+    Weekly = "Weekly",
+    Monthly = "Monthly",
+    Yearly = "Yearly",
+}
+
+export class MonthlySensorComparison implements IMonthlySensorComparison {
+    month!: string;
+    year1Value!: number | null;
+    year2Value!: number | null;
+
+    constructor(data?: IMonthlySensorComparison) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.month = _data["month"] !== undefined ? _data["month"] : <any>null;
+            this.year1Value = _data["year1Value"] !== undefined ? _data["year1Value"] : <any>null;
+            this.year2Value = _data["year2Value"] !== undefined ? _data["year2Value"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): MonthlySensorComparison {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlySensorComparison();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["month"] = this.month !== undefined ? this.month : <any>null;
+        data["year1Value"] = this.year1Value !== undefined ? this.year1Value : <any>null;
+        data["year2Value"] = this.year2Value !== undefined ? this.year2Value : <any>null;
+        return data;
+    }
+
+    clone(): MonthlySensorComparison {
+        const json = this.toJSON();
+        let result = new MonthlySensorComparison();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMonthlySensorComparison {
+    month: string;
+    year1Value: number | null;
+    year2Value: number | null;
+}
+
+export class CustomRulesListModel implements ICustomRulesListModel {
+    id!: number;
+    sensor!: SensorReferenceModel;
+    min!: number | null;
+    max!: number | null;
+    programDirective!: string | null;
+    ruleText!: string | null;
+
+    constructor(data?: ICustomRulesListModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.sensor = new SensorReferenceModel();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
+            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
+            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
+            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
+            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CustomRulesListModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomRulesListModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id !== undefined ? this.id : <any>null;
+        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
+        data["min"] = this.min !== undefined ? this.min : <any>null;
+        data["max"] = this.max !== undefined ? this.max : <any>null;
+        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
+        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
+        return data;
+    }
+
+    clone(): CustomRulesListModel {
+        const json = this.toJSON();
+        let result = new CustomRulesListModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICustomRulesListModel {
+    id: number;
+    sensor: SensorReferenceModel;
+    min: number | null;
+    max: number | null;
+    programDirective: string | null;
+    ruleText: string | null;
+}
+
 export class DashboardTableAssociationRule implements IDashboardTableAssociationRule {
     rule!: string;
     confidence!: number;
@@ -6366,72 +7394,6 @@ export class CustomRuleCreateModel implements ICustomRuleCreateModel {
 
 export interface ICustomRuleCreateModel {
     sensorId: number;
-    min: number | null;
-    max: number | null;
-    programDirective: string | null;
-    ruleText: string | null;
-}
-
-export class CustomRulesListModel implements ICustomRulesListModel {
-    id!: number;
-    sensor!: SensorReferenceModel;
-    min!: number | null;
-    max!: number | null;
-    programDirective!: string | null;
-    ruleText!: string | null;
-
-    constructor(data?: ICustomRulesListModel) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-        if (!data) {
-            this.sensor = new SensorReferenceModel();
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-            this.sensor = _data["sensor"] ? SensorReferenceModel.fromJS(_data["sensor"]) : new SensorReferenceModel();
-            this.min = _data["min"] !== undefined ? _data["min"] : <any>null;
-            this.max = _data["max"] !== undefined ? _data["max"] : <any>null;
-            this.programDirective = _data["programDirective"] !== undefined ? _data["programDirective"] : <any>null;
-            this.ruleText = _data["ruleText"] !== undefined ? _data["ruleText"] : <any>null;
-        }
-    }
-
-    static fromJS(data: any): CustomRulesListModel {
-        data = typeof data === 'object' ? data : {};
-        let result = new CustomRulesListModel();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id !== undefined ? this.id : <any>null;
-        data["sensor"] = this.sensor ? this.sensor.toJSON() : <any>null;
-        data["min"] = this.min !== undefined ? this.min : <any>null;
-        data["max"] = this.max !== undefined ? this.max : <any>null;
-        data["programDirective"] = this.programDirective !== undefined ? this.programDirective : <any>null;
-        data["ruleText"] = this.ruleText !== undefined ? this.ruleText : <any>null;
-        return data;
-    }
-
-    clone(): CustomRulesListModel {
-        const json = this.toJSON();
-        let result = new CustomRulesListModel();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ICustomRulesListModel {
-    id: number;
-    sensor: SensorReferenceModel;
     min: number | null;
     max: number | null;
     programDirective: string | null;

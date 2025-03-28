@@ -1,0 +1,68 @@
+<ng-container *transloco = "let t">
+<p-card>
+  <ng-template pTemplate="header">
+      <h1 class="p-3 m-0 pb-0">{{ title }}</h1>
+  </ng-template>
+
+  <section>
+    <div class="selection">
+      <h2 class="mb-2"> {{ t('historicalData.header') }} </h2>
+      <form class="p-fluid"
+            [formGroup]="form" (ngSubmit)="submitForm()"
+            lossMonitor [lossRouteFilter]="activatedRoute">
+        <div class="grid">
+          <div class="field col-12 md:col-6">
+            <label>
+              {{ t('historicalData.fields.start_date') }}
+              <app-required-field-indicator></app-required-field-indicator>
+            </label>
+
+            <p-calendar [inputId]="'startDate'" formControlName="startDate" [showButtonBar]="true"/>
+
+            <app-form-control-errors controlName="startDate"></app-form-control-errors>
+          </div>
+
+          <div class="field col-12 md:col-6">
+            <label>
+              {{ t('historicalData.fields.end_date') }}
+              <app-required-field-indicator></app-required-field-indicator>
+            </label>
+
+            <p-calendar [inputId]="'endDate'" formControlName="endDate" [showButtonBar]="true"/>
+            <app-form-control-errors controlName="endDate"></app-form-control-errors>
+          </div>
+        </div>
+        <div>
+          <button type="submit" [disabled]="!form.valid"
+                  pButton class="p-button-success not-fluid">
+            {{ t('historicalData.button') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <h3>{{ formatDateForDisplay(startDateResult) }} - {{ formatDateForDisplay(endDateResult) }}</h3>
+  <div class="loading" *ngIf="isLoading()">
+    <i class="pi pi-spin pi-spinner-dotted"></i>
+  </div>
+
+  <div class="errorMessage" *ngIf="hasError()">
+    <p>{{ t('historicalData.error_message') }}</p>
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
+  </div>
+
+  <div *ngIf="!isLoading() && !hasError()">
+    <section class="mt-8">
+      <p-card>
+        <app-bar-chart [data]="transformedData"
+                       yAxisTitle="{{ t('historicalData.value') }}({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+                       xAxisTitle="{{ t('historicalData.date_time') }}"
+        ></app-bar-chart>
+      </p-card>
+    </section>
+  </div>
+
+
+</p-card>
+</ng-container>

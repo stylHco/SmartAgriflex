@@ -1,0 +1,19 @@
+.loading, .errorMessage {
+  text-align: center;
+  padding: 10px;
+  margin: 10px;
+
+  i {
+    font-size: 30px !important;
+  }
+}
+
+:host ::ng-deep {
+  .p-card-body{
+    padding-top: 0 !important;
+    .p-card-content{
+      padding: 0 !important;
+    }
+  }
+
+}

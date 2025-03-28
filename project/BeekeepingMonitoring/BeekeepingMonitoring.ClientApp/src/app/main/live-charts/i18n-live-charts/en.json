@@ -1,2 +1,11 @@
 {
+  "fields": {
+    "sensor": "sensor",
+    "device": "device"
+  },
+  "header": "Please select one of the Available Sensors or Available Devices",
+  "button": "Select",
+  "error_message": "Error Loading The data. Please try again!",
+  "value": "Value",
+  "date_time": "Date Time"
 }

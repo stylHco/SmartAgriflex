@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "device": "Device"
+  },
+  "header": "Please select one of the Available or Available Devices",
+  "header_live_data": "Live Data",
+  "button": "Select",
+  "error_message": "Error Loading The data. Please try again!",
+  "value": "Value",
+  "date_time": "Date Time"
+}

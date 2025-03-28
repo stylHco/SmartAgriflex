@@ -11,9 +11,9 @@ import {
   transformData,
   transformDataForSpecificSensors,
   TransformedData
-} from "../../charts/transformation-of-data";
+} from "../../@shared/charts/pipes/transformation-time-line-chart";
 import {CommonModule} from "@angular/common";
-import {LineChartComponent} from "../../charts/line-chart.component";
+import {LineChartComponent} from "../../@shared/charts/components/line-chart.component";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
 import {Observable, of} from "rxjs";
@@ -30,6 +30,7 @@ import {CardModule} from "primeng/card";
 import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sensor-chart-legend.component";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
 import {MultiSelectModule} from "primeng/multiselect";
+import {TranslocoModule} from "@ngneat/transloco";
 
 interface SensorSelectionForm {
   sensor: FormControl<SensorReferenceModel[] | null>;
@@ -59,6 +60,7 @@ interface SeriesSelectionForm {
     SensorChartLegendComponent,
     MultiSelectModule,
     FormsModule,
+    TranslocoModule,
   ],
   templateUrl: './view-history-charts.component.html',
   styleUrl: './view-history-charts.component.scss',
@@ -143,6 +145,7 @@ export class ViewHistoryChartsComponent implements OnInit {
               this.showChart = true
               this.specificSensorData = data;
               this.transformedData = transformDataForSpecificSensors(this.specificSensorData, [EChartAvailableData.value]);
+              console.log(this.transformedData)
             }
           )
 

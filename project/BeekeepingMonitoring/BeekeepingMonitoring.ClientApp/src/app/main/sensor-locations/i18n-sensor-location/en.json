@@ -1,2 +1,10 @@
 {
+  "fields": {
+    "sensor": "sensor",
+    "device": "device"
+  },
+  "header": "Please select one of the Available Devices",
+  "form_button": "Select",
+  "view_location": "You can view the location of the sensor on Google Maps:",
+  "location_button": "View Location"
 }

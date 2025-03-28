@@ -1,0 +1,13 @@
+{
+  "headers":{
+    "legend" : "Custom Rules Legend",
+    "hourly_data": "Hourly Data",
+    "daily_data": "Daily Data",
+    "weekly_data": "Weekly Data",
+    "monthly_data": "Monthly Data",
+    "yearly_data": "Yearly Data",
+    "ytd_comparison": "Monthly YTD Comparison",
+    "live_gauge": "Live Gauge",
+    "live_data": "Live Data"
+  }
+}

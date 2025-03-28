@@ -1,21 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, signal} from '@angular/core';
 import {ActivatedRoute, Params, Router, RouterModule} from "@angular/router";
 import {
-  DeviceReferenceModel, SensorDeviceDatasClient, SensorDeviceDatasListModel,
-  SensorReferenceModel,
-  SensorsDataFullDetailsModel,
-  SensorsListModel
+
+  DeviceReferenceModel, SensorDeviceDatasClient,
+  SensorReferenceModel, SensorsLiveDataFullDetailsModel
 } from "../../../@core/app-api";
 import {ApiResult} from "../../../@shared/utils/api-result";
 import {
-  transformData, transformData2,
+   transformData2,
   TransformedData
-} from "../../charts/transformation-of-data";
+} from "../../@shared/charts/pipes/transformation-time-line-chart";
 import {CommonModule} from "@angular/common";
-import {LineChartComponent} from "../../charts/line-chart.component";
+import {LineChartComponent} from "../../@shared/charts/components/line-chart.component";
 import {FormControl, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {SensorOption, SensorRepresentingService} from "../../../@core/sensors/sensor-representing.utils";
-import {interval, Observable, Subscription, switchMap} from "rxjs";
+import {EMPTY, interval, Observable, Subject, Subscription, switchMap, takeUntil} from "rxjs";
 import {autoMarkForCheck} from "../../../@shared/utils/change-detection-helpers";
 import {CommonValidators} from "../../../@shared/utils/common-validators";
 import {FormLossPreventionModule} from "../../../@shared/form-loss-prevention/form-loss-prevention.module";
@@ -27,10 +26,13 @@ import {ButtonModule} from "primeng/button";
 import {PanelModule} from "primeng/panel";
 import {CardModule} from "primeng/card";
 import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sensor-chart-legend.component";
-import {LiveLineChartComponent} from "../../charts/live-line-chart.component";
+import {LiveLineChartComponent} from "../../@shared/charts/components/live-line-chart.component";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
 import {Loadable} from "../../../@shared/loadables/loadable";
 import {LoadablesTemplateUtilsModule} from "../../../@shared/loadables/template-utils/loadables-template-utils.module";
+import {catchError} from "rxjs/operators";
+import {getDashboardMeasurementTypeText} from "../../dashboards/@shared/dashboard-sensor-measurement-type";
+import {TranslocoModule} from "@ngneat/transloco";
 
 interface SensorSelectionForm {
   sensor: FormControl<SensorReferenceModel | null>;
@@ -57,13 +59,24 @@ interface SensorSelectionForm {
     LiveLineChartComponent,
     LiveLineChartComponent,
     LoadablesTemplateUtilsModule,
+    TranslocoModule,
   ],
   templateUrl: './view-live-charts.component.html',
   styleUrl: './view-live-charts.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class ViewLiveChartsComponent implements OnInit {
+export class ViewLiveChartsComponent implements OnInit, OnDestroy {
+
+
+  isLoading = signal(false);
+  hasError = signal(false);
+  firstTime = signal(true);
+
+
+  pollingSubscription: Subscription | null = null;
+  destroy$ = new Subject<void>();
+
   availableSensorsResults: SensorReferenceModel[] = [];
   availableSensorsFormResult!: SensorReferenceModel;
   availableSensors: SensorReferenceModel[] = [];
@@ -74,17 +87,17 @@ export class ViewLiveChartsComponent implements OnInit {
   availableDevices: DeviceReferenceModel[] = [];
   availableDevicesOptions$!: Observable<DeviceOption<DeviceReferenceModel>[]>;
 
-  sensorsFullData: SensorDeviceDatasListModel[] = [];
 
-  specificSensorData!: SensorsDataFullDetailsModel[];
+  specificSensorData!: SensorsLiveDataFullDetailsModel[];
   transformedData!: TransformedData[];
-  sensorInfo: SensorsListModel[] = [];
 
   form!: FormGroup<SensorSelectionForm>;
 
-  dataLoadable!: Loadable<TransformedData[]>;
+  deviceId!: string;
+  sensorId!: string;
 
-  dataIsLoaded = false;
+  selectedSensor!: string;
+  selectedDevice!: string;
 
   constructor(
     protected readonly activatedRoute: ActivatedRoute,
@@ -97,18 +110,15 @@ export class ViewLiveChartsComponent implements OnInit {
   ) {
   }
 
-  private pollingSubscription: Subscription | undefined;
 
   ngOnInit() {
+    this.isLoading.set(false);
     const routeData = this.activatedRoute.snapshot.data;
-    // this.sensorsFullData = (routeData['allSensorData'] as ApiResult<SensorsDataListModel[]>).value!;
-    this.sensorInfo = (routeData['sensorInfo'] as ApiResult<SensorsListModel[]>).value!;
     this.availableSensors = (routeData['availableSensors'] as ApiResult<SensorReferenceModel[]>).value!;
-    this.availableSensors.unshift(new SensorReferenceModel({id: -1, name: 'Select All', description: ''}));
     this.availableSensorsResults = this.availableSensors
     this.availableSensorsOptions$ = this.sensorRepresentingService.getOptions(this.availableSensorsResults);
     this.availableDevices = (routeData['availableDevices'] as ApiResult<DeviceReferenceModel[]>).value!;
-    this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'Select All', nickname: ''}));
+    this.availableDevices.unshift(new DeviceReferenceModel({id: -1, name: 'ALL (Average)', nickname: ''}));
     this.availableDevicesResults = this.availableDevices
     this.availableDevicesOptions$ = this.deviceRepresentingService.getOptions(this.availableDevicesResults);
 
@@ -119,22 +129,28 @@ export class ViewLiveChartsComponent implements OnInit {
         autoMarkForCheck(this.cd),
       )
       .subscribe((params: Params) => {
-        let sensorId: string = params['sensorId'];
-        let deviceId: string = params['deviceId'];
-
-        // let sensorId: number = Number(sensorIdStr);
-        // let deviceId: number = Number(deviceIdStr);
-
-        if (!isNaN(Number(sensorId))) {
-          this.availableSensorsFormResult = this.availableSensors.find(as => as.id === Number(sensorId))!;
+        this.sensorId = params['sensorId'];
+        this.deviceId = params['deviceId'];
+        if (!isNaN(Number(this.sensorId ))) {
+          this.availableSensorsFormResult = this.availableSensors.find(as => as.id === Number(this.sensorId))!;
         }
-        if (!isNaN(Number(deviceId))) {
-          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(deviceId))!;
+        if (!isNaN(Number(this.deviceId))) {
+          this.availableDevicesFormResult = this.availableDevices.find(ad => ad.id === Number(this.deviceId))!;
         }
 
+        this.selectedDevice = this.availableDevices.find(d => d.id == (
+          this.deviceId != "all" ? Number(this.deviceId) : -1))?.name!
+
+        this.selectedSensor = this.availableSensors.find(d =>
+          d.id == Number(this.sensorId))?.name!
         // Start polling
-        this.startPolling(sensorId!.toString(), deviceId!.toString());
-
+        if (!isNaN(Number(this.sensorId )) && (!isNaN(Number(this.deviceId)) || "all" )) {
+          this.firstTime.set(false)
+          this.fetchData(this.sensorId, true, this.deviceId ? this.deviceId!.toString() : "all");
+        }
+        else {
+          this.firstTime.set(true)
+        }
       });
 
   }
@@ -148,8 +164,6 @@ export class ViewLiveChartsComponent implements OnInit {
 
       if (this.form.controls.sensor.value.id != -1) {
         sensorId = this.form.controls.sensor.value.id.toString();
-      } else {
-        sensorId = 'all';
       }
 
       if (this.form.controls.device.value.id != -1) {
@@ -158,8 +172,9 @@ export class ViewLiveChartsComponent implements OnInit {
         deviceId = 'all'
       }
 
-      this.ngZone.run(() => {
-        this.router.navigate([{sensorId: sensorId, deviceId: deviceId}], {relativeTo: this.activatedRoute});
+      this.router.navigate([{ ['sensorId']: sensorId,
+        ['deviceId']: deviceId,}], {
+        relativeTo: this.activatedRoute,
       });
     } else {
       console.error("Sensor id or Device Id is undefined!!");
@@ -184,67 +199,80 @@ export class ViewLiveChartsComponent implements OnInit {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.stopPolling();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private startPolling2(sensorId: string | null, deviceId: string | null) {
-    this.stopPolling();
-    if (!this.dataLoadable) {
-
-
-      this.dataLoadable = new Loadable<TransformedData[]>(() =>
-        this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!).pipe(
-          switchMap(data => {
-            this.specificSensorData = data;
-            this.transformedData = transformData2(data);
-            console.log(data)
-            console.log(this.transformedData)
-            return [this.transformedData];
-          })
-        )
-      );
+  private fetchData(sensorId:  string | null, isFirstLoad: boolean = false, deviceId: string | null) {
+    if (isFirstLoad) {
+      this.isLoading.set(true);
+      this.cd.markForCheck(); // Ensure UI updates for loading state
     }
 
-    this.pollingSubscription = interval(1000).pipe(
-      switchMap(() => {
-        this.dataLoadable!.loadFresh();
-        return this.dataLoadable!.state$;
-      }),
-      autoMarkForCheck(this.cd)
-    ).subscribe({
-      error: (err) => {
-        console.error('Polling error:', err);
-        this.stopPolling();
-      }
+    this.hasError.set(false);
+
+
+    this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!).pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        this.hasError.set(true);
+        this.isLoading.set(false);
+        this.stopPolling(); // Stop polling if an error occurs
+        this.cd.markForCheck(); // Manually trigger UI update for error state
+        return EMPTY;
+      })
+    ).subscribe(response => {
+      this.specificSensorData = response;
+      this.transformedData = transformData2(response);
+      this.hasError.set(false);
+      this.isLoading.set(false);
+
+      this.cd.markForCheck(); // Ensure UI updates for new data
+
+      // Start polling every 1 minute after we ensures that we fetch the data successfully
+      this.startPolling(sensorId, deviceId);
     });
   }
 
-  private startPolling(sensorId: string | null, deviceId: string | null) {
+  private startPolling(sensorId:string|null, deviceId: string | null) {
     this.stopPolling();
 
-    this.pollingSubscription = interval(1000).pipe(
+    this.pollingSubscription = interval(60000).pipe(
       switchMap(() =>
-        this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!).pipe(
-          switchMap(data => {
-            this.specificSensorData = data;
-            this.dataIsLoaded = true;
-            return this.transformedData = transformData2(this.specificSensorData);
+        this.sensorDeviceDatasClient.getForSensor(sensorId!, deviceId!)
+          .pipe(
+          catchError(err => {
+            this.hasError.set(true);
+            this.stopPolling(); // Stop polling on error
+            this.cd.markForCheck(); // Manually update UI to reflect the error
+            return EMPTY;
           })
-        )
-      ),
-      autoMarkForCheck(this.cd)
+        )),
+      takeUntil(this.destroy$)
     )
-      .subscribe();
+      .subscribe(data => {
+        this.specificSensorData = data;
+        this.transformedData = transformData2(this.specificSensorData);
+        console.log(data)
+        this.hasError.set(false);
+        this.cd.markForCheck(); // Ensure UI updates with new live data
+      });
   }
 
   private stopPolling() {
     if (this.pollingSubscription) {
       this.pollingSubscription.unsubscribe();
-      this.pollingSubscription = undefined;
-      this.dataIsLoaded = false;
+      this.pollingSubscription = null;
     }
   }
 
+  // the retry logic is only caled when the user presed retry after a badrequest.
+  retry() {
+    this.fetchData(this.sensorId, true, this.deviceId ? this.deviceId!.toString() : "all");
+  }
 
+
+  protected readonly getDashboardMeasurementTypeText = getDashboardMeasurementTypeText;
 }

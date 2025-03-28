@@ -1,0 +1,11 @@
+{
+  "fields": {
+    "year1": "Year 1",
+    "year2": "Year 2"
+  },
+  "header": "Select two Years to compare",
+  "button": "Select",
+  "error_message": "Error Loading The data. Please try again!",
+  "value": "Value",
+  "date_time": "Date Time"
+}

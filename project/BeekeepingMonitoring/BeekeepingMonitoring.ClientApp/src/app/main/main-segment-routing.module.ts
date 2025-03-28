@@ -12,26 +12,16 @@ const routes: Routes = [{
   children: [
     {
       path: '',
-      redirectTo: 'dashboards/configurable',
+      redirectTo: 'dashboards/custom',
       pathMatch: 'full',
     },
     {
       path: 'dashboards',
       children: [
         {
-          path: 'configurable',
-          loadChildren: () => import('./dashboards/configurable/configurable-dashboard.entrypoint')
-            .then(i => i.routes),
-        },
-        {
-          path: 'predefined',
-          children: [
-            {
-              path: 'market-basket',
-              loadChildren: () => import('./dashboards/predefined/market-basket/market-basket.entrypoint')
-                .then(i => i.routes),
-            },
-          ],
+          path: 'custom',
+          loadChildren: () => import('./dashboards/custom-dashboards/custom-dashboards.entrypoint')
+            .then(m => m.routes),
         },
       ],
     },
@@ -76,7 +66,7 @@ const routes: Routes = [{
         .then(m => m.routes),
     },
     {
-      path: 'sensors',
+      path: 'sensor-location',
       loadChildren: () => import('./sensor-locations/sensor-locations.entrypoint')
         .then(m => m.routes),
     },

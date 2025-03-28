@@ -1,0 +1,17 @@
+  .legend-item {
+    align-items: center;
+    gap: 12px;
+    padding: 1em;
+    background: rgba(179, 174, 174, 0.49);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    flex-shrink: 0;
+  }
+
