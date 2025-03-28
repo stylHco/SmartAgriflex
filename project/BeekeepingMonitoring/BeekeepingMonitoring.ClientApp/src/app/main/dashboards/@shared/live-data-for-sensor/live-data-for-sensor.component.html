@@ -1,14 +1,14 @@
-<ng-container [appLoadableAutoManage]="dataLoadable"/>
+<ng-container *transloco="let t">
 <p-card [header]="title">
   <section>
     <div class="selection">
-      <h2 class="mb-2">Please select one of the Available or Available Devices</h2>
+      <h2 class="mb-2">{{ t('liveData.header') }}</h2>
       <form class="p-fluid"
             [formGroup]="form" (ngSubmit)="submitForm()"
             lossMonitor [lossRouteFilter]="activatedRoute">
         <div class="field">
           <label>
-            Device
+            {{ t('liveData.fields.device') }}
             <app-required-field-indicator></app-required-field-indicator>
           </label>
 
@@ -22,7 +22,7 @@
         <div>
           <button type="submit" [disabled]="!form.valid"
                   pButton class="p-button-success not-fluid">
-            Select
+            {{ t('liveData.button') }}
           </button>
         </div>
       </form>
@@ -36,19 +36,18 @@
   </div>
 
   <div class="error" *ngIf="hasError()">
-    <p>Error Loading The data. Please try again!</p>
+    <p>{{ t('liveData.error_message') }}</p>
     <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
   </div>
 
   <div *ngIf="!isLoading() && !hasError()">
-      <p-card
-        header="Live Data">
+      <p-card>
         <app-live-line-chart *ngIf="transformedData" [jsonData]="transformedData"
-        yAxisTitle="Value({{ getDashboardMeasurementTypeText(this.sensorType) }})"
-        xAxisTitle="Date Time"
+        yAxisTitle="{{ t('liveData.value') }}({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+        xAxisTitle="{{ t('liveData.date_time') }}"
         ></app-live-line-chart>
       </p-card>
   </div>
 
 </p-card>
-
+</ng-container>

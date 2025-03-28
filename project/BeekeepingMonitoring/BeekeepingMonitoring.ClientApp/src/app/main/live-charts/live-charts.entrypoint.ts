@@ -32,7 +32,6 @@ export const routes: Routes = [{
         allSensorData: resolveSensorDeviceDatasList,
         availableDevices: resolveDevicesDropdown,
         availableSensors: resolveSensorsDropdown,
-        sensorInfo: resolveSensorsList
       }
     },
     {
@@ -42,7 +41,6 @@ export const routes: Routes = [{
         allSensorData: resolveSensorDeviceDatasList,
         availableDevices: resolveDevicesDropdown,
         availableSensors: resolveSensorsDropdown,
-        sensorInfo: resolveSensorsList
       }
     }
   ]

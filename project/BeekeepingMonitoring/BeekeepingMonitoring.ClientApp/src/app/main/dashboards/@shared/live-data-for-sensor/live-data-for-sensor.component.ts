@@ -39,10 +39,18 @@ import {catchError} from "rxjs/operators";
 import {
   getDashboardMeasurementTypeText,
 } from "../dashboard-sensor-measurement-type";
+import {TRANSLOCO_SCOPE, TranslocoModule, TranslocoScope} from "@ngneat/transloco";
+import {createTranslocoLoader} from "../../../../@transloco/transloco.helpers";
 
 interface DeviceSelectionForm {
   device: FormControl<DeviceReferenceModel | null>;
 }
+
+const translocoLoader = createTranslocoLoader(
+  // @ts-ignore
+  () => import(/* webpackMode: "eager" */ './i18n-live-data-for-sensor/en.json'),
+  lang => import(/* webpackChunkName: "live-data-for-sensor-i18n" */ `./i18n-live-data-for-sensor/${lang}.json`)
+);
 
 @Component({
   selector: 'app-live-data-for-sensor',
@@ -61,11 +69,18 @@ interface DeviceSelectionForm {
     ReactiveFormsModule,
     RequiredFieldIndicatorModule,
     LoadablesTemplateUtilsModule,
-    Button
+    Button,
+    TranslocoModule
   ],
   templateUrl: './live-data-for-sensor.component.html',
   styleUrl: './live-data-for-sensor.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TRANSLOCO_SCOPE,
+      useValue: <TranslocoScope>{scope: 'liveData', loader: translocoLoader},
+    },
+  ],
 })
 export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
@@ -92,7 +107,6 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
   specificSensorData!: CustomDashboardDataFullDetailsModel[];
   transformedData!: TransformedData[];
   form!: FormGroup<DeviceSelectionForm>;
-  dataLoadable!: Loadable<TransformedData[]>;
 
   selectedDevice!: string;
 
@@ -127,15 +141,8 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
             this.deviceId = params[`deviceId_${this.widgetId}`];
             this.selectedDevice = this.availableDevices.find(d => d.id == (
               this.deviceId != "all" ? Number(this.deviceId) : -1))?.name!
+            this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
           });
-      });
-
-    this.activatedRoute.queryParams
-      .pipe(
-        autoMarkForCheck(this.cd),
-      )
-      .subscribe((params: Params) => {
-        this.fetchData(this.sensorType, true, this.deviceId ? this.deviceId!.toString() : "all");
       });
     this.form = this.buildCreateForm();
   }
@@ -193,7 +200,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
     this.hasError.set(false);
 
 
-    this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
+    this.customDashboardClient.getLiveDataForSensor(sensorType, deviceId!).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         this.hasError.set(true);
@@ -220,7 +227,7 @@ export class LiveDataForSensorComponent implements OnInit, OnDestroy {
 
     this.pollingSubscription = interval(60000).pipe(
       switchMap(() =>
-        this.customDashboardClient.getLiveDataForSensor(DashboardSensorTypeEnum.Temperature, deviceId!).pipe(
+        this.customDashboardClient.getLiveDataForSensor(sensorType, deviceId!).pipe(
           catchError(err => {
             this.hasError.set(true);
             this.stopPolling(); // Stop polling on error

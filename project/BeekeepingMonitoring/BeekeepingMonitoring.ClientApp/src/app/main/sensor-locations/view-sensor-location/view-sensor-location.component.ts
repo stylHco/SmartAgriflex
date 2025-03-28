@@ -22,6 +22,8 @@ import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sens
 import {LiveLineChartComponent} from "../../@shared/charts/components/live-line-chart.component";
 import {RippleModule} from "primeng/ripple";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
+import {MapComponent} from "./map.component";
+import {TranslocoModule} from "@ngneat/transloco";
 
 
 interface DeviceSelectionForm {
@@ -47,6 +49,8 @@ interface DeviceSelectionForm {
     SensorChartLegendComponent,
     LiveLineChartComponent,
     RippleModule,
+    MapComponent,
+    TranslocoModule,
   ],
   templateUrl: './view-sensor-location.component.html',
   styleUrl: './view-sensor-location.component.scss',

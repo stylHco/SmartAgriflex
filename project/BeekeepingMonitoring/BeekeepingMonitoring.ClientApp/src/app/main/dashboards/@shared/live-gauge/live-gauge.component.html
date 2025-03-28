@@ -1,10 +1,11 @@
-<p-card header="Live Gauge">
+<ng-container *transloco="let t">
+<p-card [header]="title!">
   <div class="loading" *ngIf="isLoading()">
     <i class="pi pi-spin pi-spinner-dotted"></i>
   </div>
 
   <div class="errorMessage" *ngIf="hasError()">
-    <p>Error Loading The data or data too old. Please try again!</p>
+    <p>{{ t('liveGauge.error_message') }}</p>
     <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
   </div>
 
@@ -17,3 +18,4 @@
     </p>
   </div>
 </p-card>
+</ng-container>

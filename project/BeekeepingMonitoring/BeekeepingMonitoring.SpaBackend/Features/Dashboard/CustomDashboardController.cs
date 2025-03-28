@@ -69,7 +69,7 @@ public partial class CustomDashboardController : ControllerBase
                 return "";
         }
     }
-
+    
     #endregion
 
 // =====================================================================================================================
@@ -168,8 +168,7 @@ public partial class CustomDashboardController : ControllerBase
             deviceSensorData = query
                 .OrderByDescending(sd => sd.RecordDate)
                 .AsEnumerable()
-                .GroupBy(sd => sd.SensorDevice.Device.Id)
-                .SelectMany(g => g.Take(10)) // Get latest 10 per device
+                .Take(10)
                 .ToList();
             
             
@@ -183,11 +182,10 @@ public partial class CustomDashboardController : ControllerBase
                     Hour = s.RecordDate.Hour,
                     Minute = s.RecordDate.Minute,
                     Second = s.RecordDate.Second,
-                    SensorDevice = s.SensorDevice.Id
                 })
                 .Select(g => new
                 {
-                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, g.Key.Minute, g.Key.Second),
+                    TimePeriod = new LocalDateTime(g.Key.Year, g.Key.Month, g.Key.Day, g.Key.Hour, g.Key.Minute, 0),
                     AvgValue = g.Average(a => a.Value ?? 0),
                 })
                 .Take(10)
@@ -233,7 +231,8 @@ public partial class CustomDashboardController : ControllerBase
     [HttpGet("get-live-gauge")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<float>> GetLiveGauge(DashboardSensorTypeEnum sensorTypeEnum)
+    public async Task<ActionResult<decimal>> GetLiveGaugeAllDevicesAverage(DashboardSensorTypeEnum sensorTypeEnum) 
+    
     {
         string selectedSensorStr = GetSensorTypeName(sensorTypeEnum);
         var selectedSensor = await _dbContext.Sensors
@@ -245,28 +244,148 @@ public partial class CustomDashboardController : ControllerBase
         {
             return BadRequest("Sensor is invalid.");
         }
+        
 
         var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(5));
 
-        var latestData = await _dbContext.SensorDeviceDatas
+        var query = _dbContext.SensorDeviceDatas
             .Include(sd => sd.SensorDevice)
-            .ThenInclude(sd => sd.Sensor)
-            .Where(sd => sd.SensorDevice.Sensor.Id == selectedSensor.Id
-                         && sd.Value != null
+            .ThenInclude(s => s.Sensor)
+            .Where(sd => sd.Value != null
                          && sd.RecordDate > now
-            )
-            .AverageAsync(sd => sd.Value);
+                         && sd.SensorDevice.Sensor.Id == selectedSensor.Id);
+        
+        var latestPerDevice = await query
+            .GroupBy(g => g.SensorDevice.Device.Id) // Group by device
+            .Select(g => g.OrderByDescending(sd => sd.RecordDate).FirstOrDefault()) // Get top one for each  device
+            .ToListAsync();
 
-
-        if (latestData == null)
+        if (!latestPerDevice.Any())
         {
             return BadRequest("Data is too old or not available.");
         }
 
+        // calculate the average from all the devices
+        var latestAverage = latestPerDevice.Average(sd => sd.Value);
 
-        return Ok(latestData);
+        return Ok(latestAverage);
     }
+    
+    [HttpGet("get-live-gauge-for-device")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<GaugeWithRulesModel>> GetLiveGaugeDevicesAverage(DashboardSensorTypeEnum sensorTypeEnum
+        ,string? deviceIdStr = "all") 
+    
+    {
+        string selectedSensorStr = GetSensorTypeName(sensorTypeEnum);
+        var selectedSensor = await _dbContext.Sensors
+            .Where(s => s.Name == selectedSensorStr)
+            .SingleOrDefaultAsync();
 
+        // check if selected sensor type exists 
+        if (selectedSensor == null)
+        {
+            return BadRequest("Sensor is invalid.");
+        }
+        
+        bool includeAllDevices = false;
+        int[] deviceIdArray = null;
+
+        // Parse device IDs from input
+        if (!string.IsNullOrWhiteSpace(deviceIdStr))
+        {
+            var deviceIds = deviceIdStr.Split(',')
+                .Select(id => id.Trim().ToLower())
+                .ToArray();
+
+            includeAllDevices = deviceIds.Contains("all");
+            deviceIdArray = deviceIds
+                .Where(id => id != "all") // Exclude "all" from device ID array
+                .Select(id => int.TryParse(id, out int num) ? num : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToArray();
+        }
+
+        // Get valid device IDs from the database
+        var validDeviceIds = await _dbContext.Devices
+            .Where(d => deviceIdArray.Contains(d.Id))
+            .Select(d => d.Id)
+            .ToListAsync();
+
+        if (deviceIdArray != null && validDeviceIds.Count != deviceIdArray.Length)
+        {
+            return BadRequest("There is a non-valid device ID.");
+        }
+
+        var now = LocalDateTime.FromDateTime(DateTime.Now).Minus(Period.FromHours(5));
+
+        var query = _dbContext.SensorDeviceDatas
+            .Include(sd => sd.SensorDevice)
+            .ThenInclude(s => s.Sensor)
+            .Where(sd => sd.Value != null
+                         && sd.RecordDate > now
+                         && sd.SensorDevice.Sensor.Id == selectedSensor.Id);
+        
+        
+        if (!query.Any())
+        {
+            return BadRequest("Data is too old or not available.");
+        }
+
+        if (!includeAllDevices)
+        {
+            query = query.Where(sd => validDeviceIds.Contains(sd.SensorDevice.Device.Id));
+        }
+
+        // Compute the average value from the query
+        var latestPerDevice = await query
+            .GroupBy(g => g.SensorDevice.Device.Id) // Group by device
+            .Select(g => g.OrderByDescending(sd => sd.RecordDate).FirstOrDefault()) // Get top one for each  device
+            .ToListAsync();
+
+        if (!latestPerDevice.Any())
+        {
+            return BadRequest("Data is too old or not available.");
+        }
+
+        // calculate the average from all the devices
+        var latestAverage = latestPerDevice.Average(sd => sd.Value);
+        var rules = await _dbContext.CustomRules
+            .Where(r => r.SensorId == selectedSensor.Id)
+            .ToListAsync();
+
+
+            var liveGaugeResult = new GaugeWithRulesModel()
+            {
+                Measurement = latestAverage,
+                CustomRule = rules.Any() ? MatchRuleWithReference(latestAverage, rules) : null
+            };
+
+        return Ok(liveGaugeResult);
+    }
+    
+    
+    private CustomRule?  MatchRuleWithReference(decimal? avgValue, List<CustomRule> rules)
+    {
+        if (!avgValue.HasValue)
+        {
+            return null;
+        }
+
+        var matchedRule = rules.FirstOrDefault(rule =>
+            (rule.Min == null || avgValue >= rule.Min) &&
+            (rule.Max == null || avgValue <= rule.Max));
+
+        return matchedRule;
+    }
+    public class GaugeWithRulesModel
+    {
+       public decimal? Measurement { get; set; }
+       public CustomRule? CustomRule { get; set; }
+    }
+    
     #endregion
 
 // =====================================================================================================================
@@ -364,7 +483,7 @@ public partial class CustomDashboardController : ControllerBase
 
         return Ok(result);
     }
-
+    
     private string MatchRule(decimal? avgValue, List<CustomRule> rules)
     {
         if (!avgValue.HasValue)

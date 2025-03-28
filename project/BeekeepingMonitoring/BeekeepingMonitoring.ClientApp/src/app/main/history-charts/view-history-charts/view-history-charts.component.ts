@@ -30,6 +30,7 @@ import {CardModule} from "primeng/card";
 import {SensorChartLegendComponent} from "../../@shared/sensor-chart-legend/sensor-chart-legend.component";
 import {DeviceOption, DeviceRepresentingService} from "../../../@core/devices/device-representing.utils";
 import {MultiSelectModule} from "primeng/multiselect";
+import {TranslocoModule} from "@ngneat/transloco";
 
 interface SensorSelectionForm {
   sensor: FormControl<SensorReferenceModel[] | null>;
@@ -59,6 +60,7 @@ interface SeriesSelectionForm {
     SensorChartLegendComponent,
     MultiSelectModule,
     FormsModule,
+    TranslocoModule,
   ],
   templateUrl: './view-history-charts.component.html',
   styleUrl: './view-history-charts.component.scss',

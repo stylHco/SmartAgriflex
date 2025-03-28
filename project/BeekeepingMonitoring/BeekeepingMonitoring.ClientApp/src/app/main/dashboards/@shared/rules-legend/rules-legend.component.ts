@@ -15,7 +15,14 @@ import {catchError} from "rxjs/operators";
 import {CommonModule} from "@angular/common";
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {Button} from "primeng/button";
+import {TRANSLOCO_SCOPE, TranslocoModule, TranslocoScope} from "@ngneat/transloco";
+import {createTranslocoLoader} from "../../../../@transloco/transloco.helpers";
 
+const translocoLoader = createTranslocoLoader(
+  // @ts-ignore
+  () => import(/* webpackMode: "eager" */ './i18n-rules/en.json'),
+  lang => import(/* webpackChunkName: "rules-i18n" */ `./i18n-rules/${lang}.json`)
+);
 @Component({
   selector: 'app-rules-legend',
   standalone: true,
@@ -23,11 +30,18 @@ import {Button} from "primeng/button";
     CardModule,
     CommonModule,
     ProgressSpinnerModule,
-    Button
+    Button,
+    TranslocoModule
   ],
   templateUrl: "rules-legend.component.html",
   styleUrl: "rules-legend.component.scss",
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TRANSLOCO_SCOPE,
+      useValue: <TranslocoScope>{scope: 'rules', loader: translocoLoader},
+    },
+  ],
 })
 
 export class RulesLegendComponent implements OnInit, OnDestroy {

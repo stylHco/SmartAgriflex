@@ -18,7 +18,14 @@ import {CommonModule} from "@angular/common";
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {DashboardSensorMeasurementType, getDashboardMeasurementTypeWithSymbols} from "../dashboard-sensor-measurement-type";
 import {Button} from "primeng/button";
+import {createTranslocoLoader} from "../../../../@transloco/transloco.helpers";
+import {TRANSLOCO_SCOPE, TranslocoModule, TranslocoScope} from "@ngneat/transloco";
 
+const translocoLoader = createTranslocoLoader(
+  // @ts-ignore
+  () => import(/* webpackMode: "eager" */ './i18n-live-gauge/en.json'),
+  lang => import(/* webpackChunkName: "live-live-gauge-i18n" */ `./i18n-live-gauge/${lang}.json`)
+);
 @Component({
   selector: 'app-live-gauge',
   standalone: true,
@@ -26,7 +33,8 @@ import {Button} from "primeng/button";
     CardModule,
     CommonModule,
     ProgressSpinnerModule,
-    Button
+    Button,
+    TranslocoModule
   ],
   templateUrl: "./live-gauge.component.html",
   styles: [
@@ -48,12 +56,22 @@ import {Button} from "primeng/button";
 
     `
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TRANSLOCO_SCOPE,
+      useValue: <TranslocoScope>{scope: 'liveGauge', loader: translocoLoader},
+    },
+  ],
 })
 
 export class LiveGaugeComponent implements OnInit, OnDestroy {
   @Input()
   sensorType!: DashboardSensorTypeEnum;
+  @Input()
+  deviceIdsStr: string | null = null;
+  @Input()
+  title: string | null = null;
 
   isLoading = signal(false);
   hasError = signal(false);
@@ -88,7 +106,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
     this.hasError.set(false);
 
-    this.customDashboardClient.getLiveGauge(this.sensorType).pipe(
+    this.customDashboardClient.getLiveGaugeAllDevicesAverage(this.sensorType).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         this.hasError.set(true);
@@ -115,7 +133,7 @@ export class LiveGaugeComponent implements OnInit, OnDestroy {
 
     this.pollingSubscription = interval(60000) // Every 1 minute
       .pipe(
-        switchMap(() => this.customDashboardClient.getLiveGauge(this.sensorType).pipe(
+        switchMap(() => this.customDashboardClient.getLiveGaugeAllDevicesAverage(this.sensorType).pipe(
           catchError(err => {
             this.hasError.set(true);
             this.stopPolling(); // Stop polling on error

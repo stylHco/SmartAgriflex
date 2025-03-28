@@ -1,13 +1,14 @@
+<ng-container *transloco="let t">
 <section>
 
   <div class="selection">
-    <h2 class="mb-2">Please select one of the Available Devices</h2>
+    <h2 class="mb-2">{{t('location.header')}}</h2>
     <form class="p-fluid"
           [formGroup]="form" (ngSubmit)="submitForm()"
           lossMonitor [lossRouteFilter]="activatedRoute">
       <div class="field">
         <label>
-          Devices
+          {{t('location.fields.device')}}
           <app-required-field-indicator></app-required-field-indicator>
         </label>
 
@@ -23,7 +24,7 @@
       <div>
         <button type="submit" [disabled]="!form.valid"
                 pButton class="p-button-success not-fluid">
-          Select Sensor
+          {{t('location.form_button')}}
         </button>
       </div>
     </form>
@@ -36,12 +37,22 @@
     <p-card
       [header]='deviceInfo.name'>
       <div>
-        <p>You can view the location of the sensor on Google Maps:</p>
-        <p-button pRipple label="View Location" icon="pi pi-fw pi-map" size="large" (click)="openLinkInNewTab()"></p-button>
-<!--        <gmp-map center="" zoom="4" map-id="DEMO_MAP_ID">-->
-<!--          <gmp-advanced-marker position="" title="" gpm-clickable></gmp-advanced-marker>-->
-<!--        </gmp-map>-->
+        <p>          {{t('location.view_location')}}</p>
+        <p-button pRipple label="{{t('location.form_button')}} " icon="pi pi-fw pi-map" size="large" (click)="openLinkInNewTab()"></p-button>
       </div>
     </p-card>
   </section>
 }
+
+
+<!--@TODO HERE I have the map component that should have the google API key. I comment it out because i did not want to expose the API key to avoid unnecessary costs  -->
+
+<!--@if (deviceInfo) {-->
+<!--  <section class="my-8">-->
+<!--    <p-card-->
+<!--      [header]='deviceInfo.name'>-->
+<!--     <app-map [lat]="deviceInfo.latitude!" [lng]="deviceInfo.longitude!"></app-map>-->
+<!--    </p-card>-->
+<!--  </section>-->
+<!--}-->
+</ng-container>

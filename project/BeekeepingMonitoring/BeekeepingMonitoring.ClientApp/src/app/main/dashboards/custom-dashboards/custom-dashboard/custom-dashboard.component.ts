@@ -17,6 +17,7 @@ import {DoubleLineChartComponent} from "../../../@shared/charts/components/doubl
 import {transformDoubleLineData} from "../../../@shared/charts/pipes/transform-double-line-chart";
 import {DoubleLineChartDateInterface} from "../../../@shared/charts/components/double-line-chart-interface";
 import {YearToDateComparisonComponent} from "../../@shared/year-to-date-comparison/year-to-date-comparison.component";
+import {TranslocoModule} from "@ngneat/transloco";
 
 @Component({
   selector: 'app-custom-dashboard',
@@ -29,7 +30,8 @@ import {YearToDateComparisonComponent} from "../../@shared/year-to-date-comparis
     HistoricalDataByIntervalForSensorComponent,
     RulesLegendComponent,
     DoubleLineChartComponent,
-    YearToDateComparisonComponent
+    YearToDateComparisonComponent,
+    TranslocoModule
   ],
   templateUrl: './custom-dashboard.component.html',
   styleUrl: './custom-dashboard.component.scss',

@@ -17,9 +17,15 @@ export const routes: Routes = [{
       useValue: <TranslocoScope>{scope: 'customDashboards', loader: translocoLoader},
     },
   ],
-  },
+},
   {
     path: ':sensorType',
     component: CustomDashboardComponent,
+    providers: [
+      {
+        provide: TRANSLOCO_SCOPE,
+        useValue: <TranslocoScope>{scope: 'customDashboards', loader: translocoLoader},
+      },
+    ],
   },
 ];

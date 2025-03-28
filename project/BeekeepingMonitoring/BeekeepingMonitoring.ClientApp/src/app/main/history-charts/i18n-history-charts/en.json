@@ -1,2 +1,9 @@
 {
+  "fields": {
+    "sensor": "sensor",
+    "device": "device"
+  },
+  "header1": "Please select one of the Available Sensors or Available Devices",
+  "header2": "Please select which series you want to see",
+  "button": "Select"
 }

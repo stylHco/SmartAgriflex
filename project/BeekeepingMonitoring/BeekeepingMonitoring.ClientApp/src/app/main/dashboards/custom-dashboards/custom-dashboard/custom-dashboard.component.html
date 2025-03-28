@@ -1,61 +1,61 @@
+<ng-container *transloco="let t">
 <h1>
   {{ sensorType }}
 </h1>
 <div class="grid">
   <div class="col-12 lg:col-9 mb-6">
-    <app-live-data-for-sensor [sensorType]="sensorType"></app-live-data-for-sensor>
+    <app-live-data-for-sensor [sensorType]="sensorType" title="{{ t('customDashboards.headers.live_data') }}"></app-live-data-for-sensor>
   </div>
   <div class="col-12 lg:col-3 liveGauge mb-6">
-    <app-live-gauge [sensorType]="sensorType"></app-live-gauge>
+    <app-live-gauge [sensorType]="sensorType" title="{{ t('customDashboards.headers.live_gauge') }}"></app-live-gauge>
   </div>
   <div class="col-12 mb-6">
     <app-rules-legend
       [sensorType]="sensorType"
-      title="Custom Rules Legend">
-
+      title="{{ t('customDashboards.headers.legend') }}">
     </app-rules-legend>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
                                                 [interval]="DashboardIntervalTypeEnum.Hourly"
                                                 widgetId="HourlyWidget"
-                                                title="Hourly Data"
+                                                title="{{ t('customDashboards.headers.hourly_data') }}"
     ></app-historical-data-by-interval-for-sensor>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
                                                 [interval]="DashboardIntervalTypeEnum.Daily"
                                                 widgetId="DailyWidget"
-                                                title="Daily Data"
+                                                title="{{ t('customDashboards.headers.yearly_data') }}"
     ></app-historical-data-by-interval-for-sensor>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
                                                 [interval]="DashboardIntervalTypeEnum.Weekly"
                                                 widgetId="WeeklyWidget"
-                                                title="Weekly Data"
+                                                title="{{ t('customDashboards.headers.weekly_data') }}"
     ></app-historical-data-by-interval-for-sensor>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
                                                 [interval]="DashboardIntervalTypeEnum.Monthly"
                                                 widgetId="MonthlyWidget"
-                                                title="Monthly Data"
+                                                title="{{ t('customDashboards.headers.monthly_data') }}"
     ></app-historical-data-by-interval-for-sensor>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-historical-data-by-interval-for-sensor [sensorType]="sensorType"
                                                 [interval]="DashboardIntervalTypeEnum.Yearly"
                                                 widgetId="YearlyWidget"
-                                                title="Yearly Data"
+                                                title="{{ t('customDashboards.headers.yearly_data') }}"
     ></app-historical-data-by-interval-for-sensor>
   </div>
   <div class="col-12 md:col-6 mb-6">
     <app-year-to-date-comparison [sensorType]="sensorType"
                                  widgetId="YTDComparison"
-                                 title="Monthly YTD Comparison"
+                                 title="{{ t('customDashboards.headers.ytd_comparison') }}"
     ></app-year-to-date-comparison>
   </div>
 
 </div>
-
+</ng-container>

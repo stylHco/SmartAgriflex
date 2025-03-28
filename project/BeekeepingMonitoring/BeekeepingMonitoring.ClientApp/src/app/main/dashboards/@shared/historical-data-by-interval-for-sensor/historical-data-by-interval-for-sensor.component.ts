@@ -47,11 +47,19 @@ import {
 import {catchError} from "rxjs/operators";
 import {BarChartInterface} from "../../../@shared/charts/components/bar-chart-interface";
 import {getDashboardMeasurementTypeText} from "../dashboard-sensor-measurement-type";
+import {TRANSLOCO_SCOPE, TranslocoModule, TranslocoScope} from "@ngneat/transloco";
+import {createTranslocoLoader} from "../../../../@transloco/transloco.helpers";
 
 interface SelectionFormInterface {
   startDate: FormControl<Date | null>;
   endDate: FormControl<Date | null>;
 }
+
+const translocoLoader = createTranslocoLoader(
+  // @ts-ignore
+  () => import(/* webpackMode: "eager" */ './i18n-historical-data-by-interval-for-sensor/en.json'),
+  lang => import(/* webpackChunkName: "live-historical-data-by-interval-for-sensor-i18n" */ `./i18n-historical-data-by-interval-for-sensor/${lang}.json`)
+);
 
 @Component({
   selector: 'app-historical-data-by-interval-for-sensor',
@@ -74,10 +82,17 @@ interface SelectionFormInterface {
     CalendarModule,
     NgStyle,
     BarChartComponent,
+    TranslocoModule,
   ],
   templateUrl: './historical-data-by-interval-for-sensor.component.html',
   styleUrl: './historical-data-by-interval-for-sensor.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TRANSLOCO_SCOPE,
+      useValue: <TranslocoScope>{scope: 'historicalData', loader: translocoLoader},
+    },
+  ],
 })
 export class HistoricalDataByIntervalForSensorComponent implements OnInit, OnDestroy {
 

@@ -1,3 +1,4 @@
+<ng-container *transloco = "let t">
 <p-card>
   <ng-template pTemplate="header">
       <h1 class="p-3 m-0 pb-0">{{ title }}</h1>
@@ -5,14 +6,14 @@
 
   <section>
     <div class="selection">
-      <h2 class="mb-2">Please select start and end Date</h2>
+      <h2 class="mb-2"> {{ t('historicalData.header') }} </h2>
       <form class="p-fluid"
             [formGroup]="form" (ngSubmit)="submitForm()"
             lossMonitor [lossRouteFilter]="activatedRoute">
         <div class="grid">
           <div class="field col-12 md:col-6">
             <label>
-              Start Date
+              {{ t('historicalData.fields.start_date') }}
               <app-required-field-indicator></app-required-field-indicator>
             </label>
 
@@ -23,7 +24,7 @@
 
           <div class="field col-12 md:col-6">
             <label>
-              End Date
+              {{ t('historicalData.fields.end_date') }}
               <app-required-field-indicator></app-required-field-indicator>
             </label>
 
@@ -34,7 +35,7 @@
         <div>
           <button type="submit" [disabled]="!form.valid"
                   pButton class="p-button-success not-fluid">
-            Select
+            {{ t('historicalData.button') }}
           </button>
         </div>
       </form>
@@ -47,7 +48,7 @@
   </div>
 
   <div class="errorMessage" *ngIf="hasError()">
-    <p>Error Loading the data. Please try again!</p>
+    <p>{{ t('historicalData.error_message') }}</p>
     <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" [raised]="true" severity="info" (click)="retry()"/>
   </div>
 
@@ -55,8 +56,8 @@
     <section class="mt-8">
       <p-card>
         <app-bar-chart [data]="transformedData"
-                       yAxisTitle="Value({{ getDashboardMeasurementTypeText(this.sensorType) }})"
-                       xAxisTitle="Date Time"
+                       yAxisTitle="{{ t('historicalData.value') }}({{ getDashboardMeasurementTypeText(this.sensorType) }})"
+                       xAxisTitle="{{ t('historicalData.date_time') }}"
         ></app-bar-chart>
       </p-card>
     </section>
@@ -64,3 +65,4 @@
 
 
 </p-card>
+</ng-container>

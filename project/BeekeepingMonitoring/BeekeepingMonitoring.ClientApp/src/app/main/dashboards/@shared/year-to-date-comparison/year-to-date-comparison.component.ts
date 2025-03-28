@@ -37,12 +37,18 @@ import {transformDoubleLineData} from "../../../@shared/charts/pipes/transform-d
 import {CalendarModule} from "primeng/calendar";
 import {DoubleLineChartComponent} from "../../../@shared/charts/components/double-line-chart.component";
 import {getDashboardMeasurementTypeText} from "../dashboard-sensor-measurement-type";
+import {createTranslocoLoader} from "../../../../@transloco/transloco.helpers";
+import {TRANSLOCO_SCOPE, TranslocoModule, TranslocoScope} from "@ngneat/transloco";
 
 interface formInterface {
   year1: FormControl<Date | null>;
   year2: FormControl<Date | null>;
 }
-
+const translocoLoader = createTranslocoLoader(
+  // @ts-ignore
+  () => import(/* webpackMode: "eager" */ './i18n-year-to-date-comparison/en.json'),
+  lang => import(/* webpackChunkName: "year-to-date-comparison-i18n" */ `./i18n-year-to-date-comparison/${lang}.json`)
+);
 @Component({
   selector: 'app-year-to-date-comparison',
   standalone: true,
@@ -62,11 +68,18 @@ interface formInterface {
     LoadablesTemplateUtilsModule,
     Button,
     CalendarModule,
-    DoubleLineChartComponent
+    DoubleLineChartComponent,
+    TranslocoModule
   ],
   templateUrl: './year-to-date-comparison.component.html',
   styleUrl: './year-to-date-comparison.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TRANSLOCO_SCOPE,
+      useValue: <TranslocoScope>{scope: 'ytd', loader: translocoLoader},
+    },
+  ],
 })
 export class YearToDateComparisonComponent implements OnInit, OnDestroy {
 
