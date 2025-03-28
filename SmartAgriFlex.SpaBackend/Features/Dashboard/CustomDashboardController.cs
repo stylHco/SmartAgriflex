@@ -181,7 +181,6 @@ public partial class CustomDashboardController : ControllerBase
                     Day = s.RecordDate.Day,
                     Hour = s.RecordDate.Hour,
                     Minute = s.RecordDate.Minute,
-                    Second = s.RecordDate.Second,
                 })
                 .Select(g => new
                 {

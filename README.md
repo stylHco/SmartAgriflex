@@ -32,8 +32,6 @@ To set up the SmartAgriflex you need to have one IDE of your choice.
 - After cloning the project locally open the .sln file in your preferred IDE
 - Open a new terminal and navigate under the `/directory/of/the/project/SmartAgriFlex.ClientApp` and install the dependencies using the following command
 
-npm install 
-
 ```bash
 cd directory/of/the/project/SmartAgriFlex.ClientApp
 
