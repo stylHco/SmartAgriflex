@@ -26,4 +26,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV PYTHONUNBUFFERED 1
 
 # Run the script when the container starts
-CMD ["python", "InjestLiveDataForDigitalSensors.py"]
+CMD ["python", "InjestLiveDataForDigitalSensorsThroughCustomAPI.py"]
