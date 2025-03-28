@@ -78,10 +78,12 @@ background. Make sure that you run `http` AND NOT https to work properly.
 
 ![img_2.png](img_2.png)
 
-Once both processes are running, open the URL that's printed in the **ClientApp's output**.
+Once both processes are running, open the URL that's printed in the **ClientApp's output**. to navigate to the platform
 
 ![img_3.png](img_3.png)
 
+
+You can register with your own user, or you can use my dummy user username: `test@example.com` and password: `1234`
 
 ***
 
