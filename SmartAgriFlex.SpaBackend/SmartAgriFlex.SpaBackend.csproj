@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+        <ClientAppProjectRoot>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '..', 'SmartAgriFlex.ClientApp').Replace('\','\\'))</ClientAppProjectRoot>
+        <UserSecretsId>eb087c8f-7451-48ad-8d9e-2fd7cba7dad2</UserSecretsId>
+        <RootNamespace>SmartAgriFlex.SpaBackend</RootNamespace>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoConstructor" Version="3.2.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="AutoMapper" Version="11.0.1" />
+        <PackageReference Include="AutoMapper.Collection" Version="8.0.0" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+        <PackageReference Include="AutoRegisterInject" Version="1.4.1" />
+        <PackageReference Include="MailKitSimplified.Sender" Version="2.10.0" />
+        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="NodaTime" Version="3.1.6" />
+        <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.0.0" />
+        <PackageReference Include="NSwag.AspNetCore" Version="14.0.0" />
+        <PackageReference Include="SimplerSoftware.EntityFrameworkCore.SqlServer.NodaTime" Version="8.0.0" />
+    </ItemGroup>
+    
+    <!--
+        As part of publishing, ensure the JS resources are freshly built in production mode,
+        unless we are exclicity told to skip building (docker)
+    -->
+    <Target Name="BuildClientApp" AfterTargets="ComputeFilesToPublish" Condition="'$(NoBuild)' != 'true'">
+        <Exec WorkingDirectory="$(ClientAppProjectRoot)" Command="npm ci" />
+        <Exec WorkingDirectory="$(ClientAppProjectRoot)" Command="npm run build" />
+    </Target>
+
+    <!-- Include the built angular app in the publish output -->
+    <Target Name="PublishRunWebpack" AfterTargets="CopyFilesToPublishDirectory">
+        <PropertyGroup>
+            <PublishClientAppDist>$(PublishDir)\ClientAppDist</PublishClientAppDist>
+        </PropertyGroup>
+        
+        <ItemGroup>
+            <ClientAppDistFiles Include="$(ClientAppProjectRoot)\dist\**" />
+            <ExistingClientAppDistFiles Include="$(PublishClientAppDist)\**" />
+        </ItemGroup>
+
+        <Delete Files="@(ExistingClientAppDistFiles)" />
+        <Copy SourceFiles="@(ClientAppDistFiles)" DestinationFolder="$(PublishClientAppDist)\%(RecursiveDir)" />
+    </Target>
+    
+</Project>
