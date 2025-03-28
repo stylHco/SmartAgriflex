@@ -1,44 +1,91 @@
-# SmartAgriFlex
+> # ***SmartAgriFlex***
 
-# Development environment
+---
 
-## Rider
+## What this project is about
 
-Load `SmartAgriFlex.sln`. Once it's loaded, make sure that the run/debug widget top/right (assuming default UI layout)
+---
+
+Smart AgriFlex is a platform that was design to simplify the use of advance techniques such as Machine Learning(ML) and Data Analytics (DA). This is achieved through a user-friendly User Interface (UI) making complesx processes easily accessible 
+
+### Some of the Objectives:
+
+---
+
+- Provide an easy-to-use platform with user-friendly UI
+- Integrate Data ingestion of different kinds of components including sensor Devices and Weather Stations
+- Implement a real time monitoring component for the measurements provided by the heterogeneous sensor devices 
+- Implement a component for historical data visualisations with filtering options that can be used for predictive analytics 
+- Provide a data management for the environmental measurements
+
+---
+
+# Prerequisites 
+
+
+To set up the SmartAgriflex you need to have one IDE of your choice.
+(I am using Rider for the examples below). To take advantage of the full capabilities of the project make sure that you have python installed to run the python script for simulating live data injestion
+
+
+# The Set Up
+
+- After cloning the project locally open the .sln file in your preferred IDE
+- Open a new terminal and navigate under the `/directory/of/the/project/SmartAgriFlex.ClientApp` and install the dependencies using the following command
+
+npm install 
+
+```bash
+cd directory/of/the/project/SmartAgriFlex.ClientApp
+
+# Install npm dependencies
+npm install
+
+# you may need sudo if you are using a mac
+sudo npm install
+```
+
+- In Rider under solution explorer: in SmartAgriFlex.SpaBackend, right click, tools -> .NET user Secrets
+
+![img.png](img.png)
+
+In this file we need to specify the connection string for teh database. The final file should be like this:
+
+
+```bash
+{ 
+ "ConnectionStrings:DefaultConnection": "User Id=inspirecenter_sensors;Password=9Rhf43m3@;Server=p3nwplsk12sql-v17.shr.prod.phx3.secureserver.net;Database=inspirecenter_sensors;Encrypt=False;TrustServerCertificate=True;"
+}
+```
+
+# Rider
+
+Make sure that the run/debug widget `top/right` (assuming default UI layout)
 is populated with 3 options:
 
 * `SmartAgriFlex.SpaBackend: http`
 * `SmartAgriFlex.SpaBackend: https`
 * `SmartAgriFlex.ClientApp: start`
 
-If any other options are present, remove them (using the Edit Configurations option). In case
-`SmartAgriFlex.ClientApp: start` is missing, you will need to add it manually:
-
-1) Edit Configuration
-2) Click on plus
-3) Select npm
-4) Fill in the fields:
-   * Package json: `SmartAgriFlex\SmartAgriFlex.ClientApp\package.json`
-   * Command: start
-
-Once the run configurations are configured, you will need to setup the run/debug widget.
-First make sure the `http` profile is selected - it needs to be the "primary" one, as
-you will be stopping/restarting it often. Then click on the down arrow (leftmost of the
-widget) and click on `Launch another configuration`. Select the client app here.
+![img_1.png](img_1.png)
 
 ### Running the project
 
-Open the run/debug widget dropdown, click **run** for the client app. It will be running on its own in the
-background, automatically detecting any changes you make to the code. Restarting this process should be
-done very rarely, if ever. Likewise, do not select the _debug_ option - the functionality is not needed
-(this is the compiler/bundler process, not the actual app) and will cause slow downs and higher (than
-needed) memory usage.
+Open the run/debug widget dropdown, click **run** for the client app `SmartAgriFlex.ClientApp: start`. It will be running on its own in the
+background.
 
-Then run the primary (`http`) profile. Usually this is done via the debug option. As it's the primary
-option, you can also use keyboard shortcuts (e.g. shift+f9). You would need to restart this process
-whenever you make any changes that cannot be applied via edit-and-continue (e.g. changes to the DI
-container, controller structure/annotations, etc.). You would also need to stop this process
-whenever you use the migrations command line tooling.
+On a similar manner you can start the backend. Open the run/debug widget dropdown, click **run** for the backend app `SmartAgriFlex.SpBackend: http`. It will be running on its own in the
+background. Make sure that you run `http` AND NOT https to work properly.
+
+![img_2.png](img_2.png)
 
 Once both processes are running, open the URL that's printed in the **ClientApp's output**.
-It's setup to proxy the api requests to the backend process.
+
+![img_3.png](img_3.png)
+
+
+***
+
+>  # ***Additional Scripts***
+
+
+## Run the python script for ingest data
