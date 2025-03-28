@@ -1,0 +1,36 @@
+<p-columnFilter
+  *ngIf="fieldPath"
+  [field]="fieldPath"
+  [matchMode]="$any(FilterModeSymbol)"
+  display="menu"
+  [showMatchModes]="false"
+  [showOperator]="false"
+  [showAddButton]="false"
+  dtRefreshOnTableReset>
+  <ng-template
+    appReferenceFilterContext
+    pTemplate="filter"
+    let-filterValue
+    let-filter="filterConstraint">
+    <p-listbox
+      [options]="(options$ | async) ?? []"
+      [ngModel]="getMultiSelectValueFromFilter(filterValue)"
+      (onChange)="filter.value = getFilterValueFromMultiSelect($event.value)"
+      [listStyle]="{ 'max-height': '250px' }"
+      [filter]="true"
+      [multiple]="true"
+      [checkbox]="true"
+      optionLabel="label"
+      optionValue="id">
+      <ng-template pTemplate="itemTemplate" let-option>
+        <ng-container *ngIf="option.id; else: naOption">
+          {{ option.label }}
+        </ng-container>
+      </ng-template>
+    </p-listbox>
+  </ng-template>
+</p-columnFilter>
+
+<ng-template #naOption>
+  <app-null-replacement/>
+</ng-template>

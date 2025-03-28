@@ -1,0 +1,124 @@
+﻿@use "../../@theme/styles/mixins";
+
+/* TODO: Better style scoping */
+:host ::ng-deep {
+  .layout-menu {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+
+    .layout-root-menuitem {
+      > .layout-menuitem-root-text {
+        font-size: .857rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--surface-900);
+        margin: .75rem 0;
+      }
+
+      > a {
+        display: none;
+      }
+    }
+
+    a {
+      user-select: none;
+
+      &.active-menuitem {
+        > .layout-submenu-toggler {
+          transform: rotate(-180deg);
+        }
+      }
+    }
+
+    li.active-menuitem {
+      > a {
+        .layout-submenu-toggler {
+          transform: rotate(-180deg);
+        }
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+
+      a {
+        display: flex;
+        align-items: center;
+        position: relative;
+        outline: 0 none;
+        color: var(--text-color);
+        cursor: pointer;
+        padding: .75rem 1rem;
+        border-radius: mixins.$borderRadius;
+        transition: background-color mixins.$transitionDuration, box-shadow mixins.$transitionDuration;
+
+        .layout-menuitem-icon {
+          margin-right: .5rem;
+        }
+
+        .layout-submenu-toggler {
+          font-size: 75%;
+          margin-left: auto;
+          transition: transform mixins.$transitionDuration;
+        }
+
+        &.active-route {
+          font-weight: 700;
+          color: var(--primary-color);
+        }
+
+        &:hover {
+          background-color: var(--surface-hover);
+        }
+
+        &:focus {
+          @include mixins.focused-inset();
+        }
+      }
+
+      ul {
+        overflow: hidden;
+        border-radius: mixins.$borderRadius;
+
+        li {
+          a {
+            margin-left: 1rem;
+          }
+
+          li {
+            a {
+              margin-left: 2rem;
+            }
+
+            li {
+              a {
+                margin-left: 2.5rem;
+              }
+
+              li {
+                a {
+                  margin-left: 3rem;
+                }
+
+                li {
+                  a {
+                    margin-left: 3.5rem;
+                  }
+
+                  li {
+                    a {
+                      margin-left: 4rem;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "start_date": "Start Date",
+    "end_date": "End Date"
+  },
+  "header": "Please select start and end Date",
+  "header_live_data": "Live Data",
+  "button": "Select",
+  "error_message": "Error Loading The data. Please try again!",
+  "value": "Value",
+  "date_time": "Date Time"
+}

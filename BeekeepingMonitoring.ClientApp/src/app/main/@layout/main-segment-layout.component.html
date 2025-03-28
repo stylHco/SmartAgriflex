@@ -1,0 +1,21 @@
+<div class="layout-wrapper layout-static" [ngClass]="containerClass">
+
+  <app-main-segment-header></app-main-segment-header>
+
+  <div
+    class="layout-sidebar"
+    appClicksInsideRetainMobileMenu
+  >
+    <ng-content select="app-main-segment-menu"></ng-content>
+  </div>
+
+  <div class="layout-main-container">
+    <div class="layout-main">
+      <ng-content></ng-content>
+    </div>
+    <app-main-segment-footer></app-main-segment-footer>
+  </div>
+
+  <div class="layout-mask"></div>
+
+</div>

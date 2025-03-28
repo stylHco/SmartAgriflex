@@ -1,0 +1,59 @@
+<ng-container *transloco="let t" appIdNamespace="sensor-device-datas-manage-">
+  <p-panel
+    #managePanel
+    [header]="manageMode == 'Edit' ? t('sensorDeviceDatas.manage.header.edit') : t('sensorDeviceDatas.manage.header.add')"
+  >
+    <ng-template pTemplate="icons">
+      <app-panel-header-actions [items]="panelMenu | dynamicMenu"/>
+    </ng-template>
+
+    <form class="p-fluid"
+          [formGroup]="form" (ngSubmit)="submitForm()"
+          lossMonitor [lossRouteFilter]="activeRoute">
+      <div class="field">
+        <label namespacedFor="sensorDevice">
+          {{ t('sensorDeviceDatas.fields.sensorDevice') }}
+          <app-required-field-indicator></app-required-field-indicator>
+        </label>
+        <p-dropdown [inputId]="'sensorDevice' | namespaceId" formControlName="sensorDevice"
+                    [options]="(sensorDeviceOptions$ | async) ?? []"
+                    optionValue="entry" optionLabel="label"
+                    appPlaceholder appFilterPlaceholder
+                    [filter]="true" [autoDisplayFirst]="false" />
+        <app-form-control-errors controlName="sensorDevice"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="value">
+          {{ t('sensorDeviceDatas.fields.value') }}
+        </label>
+        <p-inputNumber [inputId]="'value' | namespaceId" formControlName="value"
+                       [showClear]="true" [minFractionDigits]="2"
+                       [min]="-999999999999.999" [max]="999999999999.999">
+        </p-inputNumber>
+        <app-form-control-errors controlName="value"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="recordDate">
+          {{ t('sensorDeviceDatas.fields.recordDate') }}
+          <app-required-field-indicator></app-required-field-indicator>
+        </label>
+        <p-calendar [inputId]="'recordDate' | namespaceId" formControlName="recordDate">
+        </p-calendar>
+        <app-form-control-errors controlName="recordDate"></app-form-control-errors>
+      </div>
+
+      <div>
+        <button type="submit" [disabled]="!form.valid"
+                pButton class="p-button-success not-fluid"
+                [label]="manageMode == 'Edit' ? t('buttons.saveChanges') : t('buttons.saveCreate')">
+        </button>
+      </div>
+    </form>
+  </p-panel>
+
+  <p-blockUI [blocked]="formDisabler.monitor.isSubscribed" [target]="managePanel">
+    <p-progressSpinner></p-progressSpinner>
+  </p-blockUI>
+</ng-container>

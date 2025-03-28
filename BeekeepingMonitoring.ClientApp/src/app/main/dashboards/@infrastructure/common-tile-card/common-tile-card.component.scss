@@ -1,0 +1,31 @@
+:host {
+  display: contents;
+}
+
+p-card {
+  display: block;
+
+  // These values are manually adjusted for the card shadow
+  height: calc(100% - 4px);
+  margin: 1px 2px 3px 2px;
+
+  ::ng-deep .p-card {
+    height: 100%;
+
+    /*
+      Needed to "clip" the content (e.g. scrollbar).
+      https://stackoverflow.com/a/8582304/2588539
+    */
+    overflow: hidden;
+
+    .p-card-body {
+      padding: 0!important;
+      height: 100%;
+
+      .p-card-content {
+        padding: 0!important;
+        height: 100%;
+      }
+    }
+  }
+}

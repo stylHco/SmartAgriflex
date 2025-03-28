@@ -1,0 +1,103 @@
+<!--<ng-container [appLoadableAutoManage]="dashboardsRegistry.dashboardsLoadable"></ng-container>-->
+<ng-container [appLoadableAutoManage]="detailsLoadable"/>
+
+<div class="flex gap-3">
+  <div>
+    <p-card>
+      <div class="flex justify-content-center align-items-center">
+        <div>
+          <button pButton class="p-panel-header-icon p-link mr-2"
+                  title="Dashboard switcher"
+                  (click)="dashboardSelector.show()">
+            <span class="pi pi-bars"></span>
+          </button>
+          <button pButton class="p-panel-header-icon p-link p-button-success"
+                  title="Create new dashboard"
+                  (click)="openCreateDashboard()">
+            <span class="pi pi-plus"></span>
+          </button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div
+    *loadableWhenLoaded="detailsLoadable; let details"
+    class="flex-grow-1"
+  >
+    <p-card>
+      <div class="flex justify-content-between align-items-center">
+        <div [pTooltip]="!currentDashboardIsDirty ? '' : 'Current dashboard has unsaved changes'"
+             tooltipPosition="top">
+          <strong>{{ details.name }}</strong>
+
+          <span *ngIf="currentDashboardIsDirty"
+                class="text-color-secondary">
+              *
+            </span>
+        </div>
+
+        <div>
+          <!-- TODO: text -->
+          <button pButton class="p-panel-header-icon p-link mr-2"
+                  (click)="manageModeSelected = !manageModeSelected"
+                  [title]="manageModeSelected
+                              ? 'Click to enable manage mode. Currently unlocked'
+                              : 'Click to disable manage mode. Currently locked'">
+              <span class="pi"
+                    [class.pi-lock]="!manageModeSelected"
+                    [class.pi-lock-open]="manageModeSelected">
+              </span>
+          </button>
+          <button pButton class="p-panel-header-icon p-link p-button-success mr-2"
+                  (click)="manageTile.show()">
+            <span class="pi pi-plus"></span>
+          </button>
+          <button pButton class="p-panel-header-icon p-link" (click)="saveTiles()"
+                  [disabled]="savingMonitor.isSubscribed">
+            <span class="pi pi-save"></span>
+            <!-- TODO: spinner -->
+            <!-- TODO: edit title -->
+          </button>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>
+
+<div
+  *ngIf="detailsLoadable.source === null"
+  class="margin-top: 10px"
+>
+  <p-messages
+    [value]="[{ severity: 'warn', detail: 'Please select a dashboard or create a new one' }]"
+    [enableService]="false"
+    [closable]="false"
+  />
+</div>
+
+<ng-container *loadableWhenLoaded="detailsLoadable; let details">
+  <div style="margin-top: 10px">
+    <app-dash-tiles-grid
+      [(tileModels)]="currentTiles"
+      (tileModelsChange)="currentDashboardIsDirty = true"
+      [presentSpecProvider]="provideTileSpecBound"
+      [isManageModeSelected]="manageModeSelected"/>
+
+    <p-messages
+      *ngIf="currentTiles.length < 1"
+      [value]="[{ severity: 'warn', detail: 'Dashboard is empty' }]"
+      [enableService]="false"
+      [closable]="false"
+    />
+  </div>
+</ng-container>
+
+<app-loadable-d-medium [loadable]="detailsLoadable">
+</app-loadable-d-medium>
+
+<app-dashboard-selector #dashboardSelector />
+
+<app-dash-manage-tile
+  #manageTile
+  (onConfirmed)="onTileEdited($event)"/>

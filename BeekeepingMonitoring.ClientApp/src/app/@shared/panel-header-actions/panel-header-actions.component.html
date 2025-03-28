@@ -1,0 +1,16 @@
+<!-- TODO: collapse the whole thing to a burger menu when on mobile -->
+
+<ng-container *ngFor="let item of items; let i = index">
+  <span *ngIf="item.separator" class="separator p-panel-header-icon"></span>
+
+  <app-panel-header-submenu-action
+    *ngIf="item.items && !item.separator"
+    [item]="item"
+  />
+
+  <app-panel-header-atomic-action
+    *ngIf="!item.items && !item.separator"
+    [item]="item"
+    [index]="i"
+  />
+</ng-container>

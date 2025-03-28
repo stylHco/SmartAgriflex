@@ -1,0 +1,7 @@
+:host {
+  padding: 1.3rem 1rem;
+}
+
+:host(:not(:last-child)) {
+  border-bottom: 1px solid var(--surface-50);
+}

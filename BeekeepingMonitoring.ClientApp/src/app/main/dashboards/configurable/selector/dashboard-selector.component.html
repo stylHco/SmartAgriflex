@@ -1,0 +1,37 @@
+<ng-container
+  *ngIf="isVisible"
+  [appLoadableAutoManage]="registry.dashboardsLoadable"/>
+
+<p-dialog
+  [(visible)]="isVisible"
+  header="Dashboards"
+  [closeOnEscape]="true"
+  [dismissableMask]="true"
+  [modal]="true">
+  <app-loadable-d-medium [loadable]="registry.dashboardsLoadable">
+  </app-loadable-d-medium>
+
+  <ng-container *loadableWhenLoaded="registry.dashboardsLoadable; let dashboards">
+    <div class="p-fluid">
+      <div class="field">
+        <p-listbox [options]="dashboards" [(ngModel)]="selectedDashboardId"
+                   optionLabel="name" optionValue="id"
+                   appFilterPlaceholder [filter]="true">
+        </p-listbox>
+      </div>
+
+      <button pButton
+              class="justify-content-center"
+              [class.p-button-success]="!isAlreadyOpen"
+              [disabled]="!selectedDashboardId || isAlreadyOpen"
+              (click)="open()">
+        <ng-container *ngIf="isAlreadyOpen; else openText">
+          Current
+        </ng-container>
+        <ng-template #openText>
+          Open
+        </ng-template>
+      </button>
+    </div>
+  </ng-container>
+</p-dialog>

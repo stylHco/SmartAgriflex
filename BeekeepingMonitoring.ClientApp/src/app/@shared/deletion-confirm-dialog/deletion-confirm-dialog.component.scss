@@ -1,0 +1,14 @@
+.buttons-container {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.spinner-container {
+  margin-right: 0.5rem;
+
+  i {
+    font-size: 2rem;
+  }
+}

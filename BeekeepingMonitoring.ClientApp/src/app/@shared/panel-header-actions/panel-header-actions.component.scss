@@ -1,0 +1,16 @@
+:host {
+  display: contents;
+}
+
+// TODO: better visuals (also the presence of a separator causes the panel header height to change)
+.separator {
+  // Undo some stuff from p-panel-header-icon
+  border: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+
+  // Our styles
+  border-right: 1px solid var(--surface-border) !important;
+  margin: 0 0.4rem;
+}

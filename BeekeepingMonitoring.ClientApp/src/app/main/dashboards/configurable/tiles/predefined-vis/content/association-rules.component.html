@@ -1,0 +1,32 @@
+<!-- TODO: remove row separator after the final row -->
+<p-table [value]="data"
+         [scrollable]="true" scrollHeight="flex"
+         [tableStyle]="{'min-width': '50rem'}"
+         sortField="lift" [sortOrder]="-1">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Rule</th>
+      <th pSortableColumn="confidence">
+        Confidence
+        <p-sortIcon field="confidence"></p-sortIcon>
+      </th>
+      <th pSortableColumn="support">
+        Support
+        <p-sortIcon field="support"></p-sortIcon>
+      </th>
+      <th pSortableColumn="lift">
+        Lift
+        <p-sortIcon field="lift"></p-sortIcon>
+      </th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-row [appWitnessIterable]="data">
+    <tr>
+      <td>{{ row.rule }}</td>
+      <td>{{ row.confidence | number:'1.0-2' }}%</td>
+      <td>{{ row.support | number:'1.0-2' }}%</td>
+      <td>{{ row.lift | number:'1.0-2' }}%</td>
+    </tr>
+  </ng-template>
+</p-table>

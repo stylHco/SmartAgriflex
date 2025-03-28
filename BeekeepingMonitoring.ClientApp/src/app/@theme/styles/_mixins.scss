@@ -1,0 +1,50 @@
+﻿//$fontSize: 10px; // ???
+$borderRadius: 12px;
+$transitionDuration: .2s;
+
+$panelHeaderEdgeSpacingX: 1rem;
+$panelHeaderEdgeSpacingY: 0.5rem;
+
+@mixin focused() {
+  outline: 0 none;
+  outline-offset: 0;
+  transition: box-shadow .2s;
+  box-shadow: var(--focus-ring);
+}
+
+@mixin focused-inset() {
+  outline: 0 none;
+  outline-offset: 0;
+  transition: box-shadow .2s;
+  box-shadow: inset var(--focus-ring);
+}
+
+// TODO: These will probably not work properly in components
+
+@mixin when-dark-theme () {
+  :root {
+    &[data-theme-selection='dark'] {
+      @content
+    }
+
+    @media (prefers-color-scheme: dark) {
+      &[data-theme-selection='system'] {
+        @content
+      }
+    }
+  }
+}
+
+@mixin when-light-theme () {
+  :root {
+    &[data-theme-selection='light'] {
+      @content
+    }
+
+    @media (prefers-color-scheme: light) {
+      &[data-theme-selection='system'] {
+        @content
+      }
+    }
+  }
+}

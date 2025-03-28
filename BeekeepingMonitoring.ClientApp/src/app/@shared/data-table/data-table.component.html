@@ -1,0 +1,135 @@
+<!-- For $any(globalFilterFields) see ColumnSpec::globalFilter description -->
+<p-table
+  #table
+  styleClass="p-datatable-striped p-datatable-gridlines"
+  [value]="rowModels"
+  sortMode="multiple"
+  [showInitialSortBadge]="false"
+  [globalFilterFields]="$any(globalFilterFields)"
+  [globalFilterValue]="globalFilterValue"
+  [dataKey]="$any(dataKey)"
+  [rows]="10"
+  [showCurrentPageReport]="true"
+  [rowsPerPageOptions]="[10, 25, 50]"
+  [paginator]="!tempDisablePagination"
+>
+
+  <ng-template pTemplate="caption">
+    <div class="flex flex-column gap-2 sm:flex-row">
+      <button
+        pButton
+        label="Reset"
+        title="Clears sorting and filters"
+        class="p-button-outlined"
+        icon="pi pi-refresh"
+        (click)="resetTable()"
+      ></button>
+      <p-button
+        class="display-contents"
+        styleClass="p-button-outlined"
+        icon="pi pi-file-pdf"
+        title="Download as PDF"
+        (onClick)="exportPdf()"
+      />
+      <p-button
+        styleClass="p-button-outlined"
+        icon="mdi mdi-file-delimited-outline text-lg"
+        title="Download as CSV"
+        (onClick)="exportCsv()"
+      />
+
+      <div class="flex-grow-1"></div>
+
+      <span *ngIf="globalFilterFields.length > 0" class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+
+        <!-- TODO: better placeholder, localization -->
+        <input
+          pInputText
+          type="text"
+          placeholder="Search keyword"
+          [(ngModel)]="globalFilterValue"
+        />
+      </span>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="header">
+    <tr>
+      <th
+        *ngIf="expandableRows"
+        [class.hidden]="exportingPdf"
+        style="width: 5rem"
+      ></th>
+
+      <th
+        *ngFor="let colSpec of columnSpecs"
+        [class.hidden]="colSpec.excludeFromExport && exportingPdf"
+        [pSortableColumn]="colSpec.sortField ?? ''" [pSortableColumnDisabled]="!colSpec.sortField"
+        [ngClass]="colSpec.headerClass"
+        [ngStyle]="colSpec.headerStyle"
+      >
+        <div class="flex flex-row align-items-center">
+          <div>
+            <ng-container [appDynamicComponentOutlet]="colSpec.header"/>
+          </div>
+
+          <div class="flex-grow-1" style="min-width: 3px"></div>
+
+          <div class="flex flex-row align-items-center">
+            <ng-container
+              [appDynamicComponentOutlet]="colSpec.columnFilter"
+              [optionalInputs]="getFilterInputs()"
+            />
+
+            <!-- Explicit flex row fixes a bunch of layouting issues -->
+            <p-sortIcon
+              *ngIf="colSpec.sortField" [field]="colSpec.sortField"
+              class="flex flex-row"
+            />
+          </div>
+        </div>
+      </th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-rowData let-expanded="expanded">
+    <tr>
+      <td
+        *ngIf="expandableRows"
+        [class.hidden]="exportingPdf"
+      >
+        <button
+          type="button"
+          pButton
+          [pRowToggler]="rowData"
+          class="p-button-text p-button-rounded p-button-plain"
+          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+        ></button>
+      </td>
+
+      <td
+        *ngFor="let colSpec of columnSpecs"
+        [class.hidden]="colSpec.excludeFromExport && exportingPdf"
+        [ngClass]="colSpec.cellClass | unwrapRowModelCallback:rowData | async"
+        [ngStyle]="colSpec.cellStyle | unwrapRowModelCallback:rowData | async"
+      >
+        <ng-container
+          *ngIf="colSpec.cellValue"
+          [appDynamicComponentOutlet]="colSpec.cellValue"
+          [optionalInputs]="getCellInputs(rowData)"/>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="rowexpansion" let-rowData>
+    <tr>
+      <td [colSpan]="columnSpecs.length + 1">
+        <ng-container
+          [ngTemplateOutlet]="rowExpansionTemplate ?? null"
+          [ngTemplateOutletContext]="{$implicit: rowData}"
+        />
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

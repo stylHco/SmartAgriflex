@@ -1,0 +1,24 @@
+﻿<a *ngFor="let item of itemsForDisplay"
+   [routerLink]="routerCommandsProvider?.(item) | appCoerce$ | async">
+  <p-chip [label]="(labelProvider?.(item) | appCoerce$ | async) ?? ''">
+
+    <!-- Do not insert an empty div.p-chip-text if there is no label template -->
+    <div class="p-chip-text"
+         *ngIf="labelTemplate && labelTemplateAutoWrap; else: withoutAutoWrap">
+      <ng-container
+        [ngTemplateOutlet]="labelTemplate"
+        [ngTemplateOutletContext]="{ $implicit: item }"/>
+    </div>
+
+    <ng-template #withoutAutoWrap>
+      <ng-container
+        [ngTemplateOutlet]="labelTemplate ?? null"
+        [ngTemplateOutletContext]="{ $implicit: item }"/>
+    </ng-template>
+
+  </p-chip>
+</a>
+
+<i *ngIf="excessCount as count">
+  +{{ count }}
+</i>

@@ -1,0 +1,78 @@
+<ng-container *transloco="let t" appIdNamespace="sensor-devices-manage-">
+  <p-panel
+    #managePanel
+    [header]="manageMode == 'Edit' ? t('customRules.manage.header.edit') : t('customRules.manage.header.add')"
+  >
+    <ng-template pTemplate="icons">
+      <app-panel-header-actions [items]="panelMenu | dynamicMenu"/>
+    </ng-template>
+
+    <form class="p-fluid"
+          [formGroup]="form" (ngSubmit)="submitForm()"
+          lossMonitor [lossRouteFilter]="activeRoute">
+      <div class="field">
+        <label namespacedFor="sensor">
+          {{ t('customRules.fields.sensor') }}
+          <app-required-field-indicator></app-required-field-indicator>
+        </label>
+        <p-dropdown [inputId]="'sensor' | namespaceId" formControlName="sensor"
+                    [options]="(sensorOptions$ | async) ?? []"
+                    optionValue="entry" optionLabel="label"
+                    appPlaceholder appFilterPlaceholder
+                    [filter]="true" [autoDisplayFirst]="false"/>
+        <app-form-control-errors controlName="sensor"></app-form-control-errors>
+      </div>
+      <div class="grid">
+        <div class="field col-12 md:col-6">
+          <label namespacedFor="min">
+            {{ t('customRules.fields.min') }}
+          </label>
+          <p-inputNumber [inputId]="'min' | namespaceId" formControlName="min"
+                         [showClear]="true" [minFractionDigits]="2"
+                         [min]="-999999999999.999" [max]="999999999999.999">
+          </p-inputNumber>
+          <app-form-control-errors controlName="min"></app-form-control-errors>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label namespacedFor="max">
+            {{ t('customRules.fields.max') }}
+          </label>
+          <p-inputNumber [inputId]="'max' | namespaceId" formControlName="max"
+                         [showClear]="true" [minFractionDigits]="2"
+                         [min]="-999999999999.999" [max]="999999999999.999">
+          </p-inputNumber>
+          <app-form-control-errors controlName="max"></app-form-control-errors>
+        </div>
+      </div>
+
+
+      <div class="field">
+        <label namespacedFor="programDirective">
+          {{ t('customRules.fields.program_directive') }}
+        </label>
+        <input namespacedId="programDirective" formControlName="programDirective"
+               pInputText type="text">
+        <app-form-control-errors controlName="programDirective"></app-form-control-errors>
+      </div>
+
+      <div class="field">
+        <label namespacedFor="ruleText">
+          {{ t('customRules.fields.rule_text') }}
+        </label>
+        <input namespacedId="ruleText" formControlName="ruleText"
+               pInputText type="text">
+        <app-form-control-errors controlName="ruleText"></app-form-control-errors>
+      </div>
+      <div>
+        <button type="submit" [disabled]="!form.valid"
+                pButton class="p-button-success not-fluid"
+                [label]="manageMode == 'Edit' ? t('buttons.saveChanges') : t('buttons.saveCreate')">
+        </button>
+      </div>
+    </form>
+  </p-panel>
+
+  <p-blockUI [blocked]="formDisabler.monitor.isSubscribed" [target]="managePanel">
+    <p-progressSpinner></p-progressSpinner>
+  </p-blockUI>
+</ng-container>

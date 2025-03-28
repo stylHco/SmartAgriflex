@@ -1,0 +1,19 @@
+﻿<ng-container *transloco="let t">
+
+  <a pButton class="p-button-text p-button-icon-only" icon="pi pi-search"
+     [routerLink]="viewLink" [title]="t('buttons.viewDetails')">
+  </a>
+  <!-- TODO: better icon -->
+  <a pButton class="p-button-text p-button-icon-only" icon="pi pi-user-edit"
+     [routerLink]="editLink" [title]="t('buttons.edit')">
+  </a>
+  <button pButton class="p-button-text p-button-icon-only" icon="pi pi-trash"
+          (click)="isDeleteConfirmOpen = true" [title]="t('buttons.delete')">
+  </button>
+
+  <app-deletion-confirm-dialog
+    [(isOpen)]="isDeleteConfirmOpen"
+    [itemDeletedName]="(itemNameForDelete | appCoerce$ | async) ?? ''"
+    (accepted)="deleteConfirmed()" [inProgress]="isDeleting"/>
+
+</ng-container>

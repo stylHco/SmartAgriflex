@@ -1,0 +1,10 @@
+<div *ngIf="!disableLabel" class="col-12 md:col-4 xl:col-3 mb-2 md:mb-0">
+  <span class="font-semibold">
+    {{ label }}
+  </span>
+  <ng-content select="span.label"></ng-content>
+</div>
+
+<div class="col">
+  <ng-content></ng-content>
+</div>

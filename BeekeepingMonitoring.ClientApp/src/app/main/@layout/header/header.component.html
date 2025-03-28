@@ -1,0 +1,60 @@
+<div class="layout-topbar">
+  <a class="layout-topbar-logo" routerLink="/">
+    <!--<img src="assets/layout/images/{{layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-white'}}.svg" alt="logo">-->
+<!--    <span>BeekeepingMonitoring</span>-->
+    <span>SmartAgriFlex</span>
+  </a>
+
+  <button
+    class="p-link layout-menu-button layout-topbar-button"
+    appClicksInsideRetainMobileMenu
+    (click)="toggleMenu()"
+  >
+    <i class="pi pi-bars"></i>
+  </button>
+
+  <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button">
+    <i class="pi pi-ellipsis-v"></i>
+  </button>
+
+  <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': false}">
+    <!--<button class="p-link layout-topbar-button">
+      <i class="pi pi-calendar"></i>
+      <span>Calendar</span>
+    </button>-->
+    <button class="p-link layout-topbar-button" (click)="userOverlay.show($event)">
+      <i class="pi pi-user"></i>
+      <span>Profile</span>
+    </button>
+    <button class="p-link layout-topbar-button" (click)="settingsOverlay.show($event)">
+      <i class="pi pi-cog"></i>
+      <span>Settings</span>
+    </button>
+  </div>
+</div>
+
+<p-overlayPanel #userOverlay>
+  <p>
+    {{ userName$ | async }}
+  </p>
+
+  <!-- TODO: loc -->
+  <div class="mb-2">
+    <p-button label="My account" routerLink="/app/account"></p-button>
+  </div>
+  <div>
+    <p-button label="Logout" (onClick)="logout()" [disabled]="logoutMonitor.isSubscribed"></p-button>
+  </div>
+</p-overlayPanel>
+
+<p-overlayPanel #settingsOverlay>
+  <div>
+    <strong class="mb-2">Language</strong>
+    <app-lang-selector></app-lang-selector>
+  </div>
+
+  <div class="mt-1">
+    <strong class="mb-2">Theme</strong>
+    <app-theme-selector></app-theme-selector>
+  </div>
+</p-overlayPanel>

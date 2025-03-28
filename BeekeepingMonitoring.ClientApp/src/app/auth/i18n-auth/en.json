@@ -1,0 +1,8 @@
+{
+  "login": {
+    "header": "Login"
+  },
+  "register": {
+    "header": "Register"
+  }
+}

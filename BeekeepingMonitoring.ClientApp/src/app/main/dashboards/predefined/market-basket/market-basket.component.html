@@ -1,0 +1,17 @@
+<div class="mb-4">
+  <p-panel header="Options">
+    <div class="mb-2">
+      Lift: {{ liftRangeSubject.value[0] }} - {{ liftRangeSubject.value[1] }}
+    </div>
+
+    <p-slider
+      [ngModel]="liftRangeSubject.value"
+      (ngModelChange)="liftRangeSubject.next($event)"
+      [range]="true"
+      [min]="0" [max]="MaxLift" [step]="0.1"/>
+  </p-panel>
+</div>
+
+<app-dash-tiles-grid
+  [(tileModels)]="currentTiles"
+  [presentSpecProvider]="provideTileSpecBound"/>

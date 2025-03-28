@@ -1,0 +1,17 @@
+<ng-container [appLoadableAutoManage]="loadables.loadables.component"/>
+<ng-container [appLoadableAutoManage]="loadables.loadables.data"/>
+
+<app-tile-status-container
+  *loadableWhenLoadingAny="loadables">
+  <app-l-ind-u-med-spinner/>
+</app-tile-status-container>
+
+<app-tile-status-container
+  *loadableWhenCompletedWithFailed="loadables; let retry = retryFn">
+  <app-l-ind-f-med-retry (onRetry)="retry()"/>
+</app-tile-status-container>
+
+<ng-container
+  *loadableWhenLoadedAll="loadables as values"
+  [appDynamicComponentOutlet]="values.component"
+  [optionalInputs]="getComponentInputs(values.data)"/>

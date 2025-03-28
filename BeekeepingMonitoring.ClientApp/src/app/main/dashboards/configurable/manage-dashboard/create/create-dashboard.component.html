@@ -1,0 +1,19 @@
+<ng-container *transloco="let t">
+  <app-manage-dashboard-form [form]="form" (onSubmit)="onSubmit()">
+
+    <div class="end-of-form flex justify-content-end">
+      <button type="button" pButton class="p-button-danger mr-3"
+              [label]="t('buttons.cancel')"
+              [disabled]="formDisabler.monitor.isSubscribed"
+              (click)="onReject()">
+      </button>
+
+      <button type="submit" pButton
+              [disabled]="form.invalid"
+              [loading]="formDisabler.monitor.isSubscribed"
+              label="Save">
+      </button>
+    </div>
+
+  </app-manage-dashboard-form>
+</ng-container>
